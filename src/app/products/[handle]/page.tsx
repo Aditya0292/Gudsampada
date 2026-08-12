@@ -149,8 +149,13 @@ export default function ProductDetailPage({
                 </p>
 
                 {/* Price */}
-                <div className="flex items-baseline gap-2 mb-6 pb-5 border-b border-border">
-                  <span className="text-3xl font-sans font-bold text-molasses">₹{selectedVariant.price}</span>
+                <div className="flex items-baseline gap-3 mb-6 pb-5 border-b border-border">
+                  {selectedVariant.originalPrice && (
+                    <span className="text-xl font-sans text-molasses/40 line-through decoration-molasses/30">
+                      ₹{selectedVariant.originalPrice}
+                    </span>
+                  )}
+                  <span className="text-3xl font-sans font-bold text-terracotta">₹{selectedVariant.price}</span>
                   <span className="text-xs text-molasses/60 font-sans uppercase tracking-wider font-semibold">
                     / {selectedVariant.weight}
                   </span>

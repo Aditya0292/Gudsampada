@@ -98,14 +98,21 @@ export default function ProductCard({ product, index }: ProductCardProps): React
             </div>
             
             {/* Elevated Price Tag Row (Tabular Numbers & Baseline Alignment) */}
-            <div className="flex items-baseline justify-between pt-3 mt-auto w-full">
-              <span className="text-base md:text-lg font-sans font-medium tabular-nums text-[#2D241E]">
-                <span className="text-xs font-semibold mr-0.5 text-molasses/60">₹</span>
-                {product.variants[0].price}
-              </span>
-              <span className="text-[10px] font-sans font-medium uppercase tracking-[0.18em] text-molasses/50">
-                / {product.variants[0].weight}
-              </span>
+            <div className="flex flex-col pt-3 mt-auto w-full">
+              {product.variants[0].originalPrice && (
+                <span className="text-xs font-sans text-molasses/40 line-through decoration-molasses/30 mb-0.5">
+                  ₹{product.variants[0].originalPrice}
+                </span>
+              )}
+              <div className="flex items-baseline justify-between w-full">
+                <span className="text-base md:text-lg font-sans font-medium tabular-nums text-terracotta">
+                  <span className="text-xs font-semibold mr-0.5 text-terracotta/80">₹</span>
+                  {product.variants[0].price}
+                </span>
+                <span className="text-[10px] font-sans font-medium uppercase tracking-[0.18em] text-molasses/50">
+                  / {product.variants[0].weight}
+                </span>
+              </div>
             </div>
           </div>
 

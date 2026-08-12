@@ -5,6 +5,7 @@ export interface ProductVariant {
  weight: string
  weightGrams: number
  price: number
+ originalPrice?: number
 }
 
 export interface Product {
@@ -36,7 +37,8 @@ function mapDBProductToFrontend(dbProduct: any): Product {
       id: `${dbProduct.id}_250g`,
       weight: '250g',
       weightGrams: 250,
-      price: dbProduct.price_250g
+      price: dbProduct.price_250g,
+      originalPrice: Math.round(dbProduct.price_250g * 1.35)
     })
   }
   if (dbProduct.price_500g) {
@@ -44,7 +46,8 @@ function mapDBProductToFrontend(dbProduct: any): Product {
       id: `${dbProduct.id}_500g`,
       weight: '500g',
       weightGrams: 500,
-      price: dbProduct.price_500g
+      price: dbProduct.price_500g,
+      originalPrice: Math.round(dbProduct.price_500g * 1.35)
     })
   }
 
