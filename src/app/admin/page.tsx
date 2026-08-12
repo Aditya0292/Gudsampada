@@ -22,7 +22,7 @@ export default async function AdminDashboardPage({
       .select('id, order_number, customer_name, total, payment_status, order_status, created_at')
       .order('created_at', { ascending: false }),
     (supabase.from('b2b_enquiries') as any)
-      .select('id, status'),
+      .select('id, status, created_at'),
     (supabase.from('products') as any)
       .select('id, name, stock_250g, stock_500g, is_active')
   ])
@@ -38,21 +38,35 @@ export default async function AdminDashboardPage({
   }>
   const recentOrders = orders.slice(0, 10)
 
-  // Calculate Metrics
-  const paidOrders = orders.filter((o) => o.payment_status === 'paid')
-  const pendingOrders = orders.filter((o) => o.payment_status === 'pending')
-  
-  const totalRevenueAllTime = paidOrders.reduce((sum, o) => sum + Number(o.total || 0), 0)
-
-  // This month revenue
+  // Calculate Metrics Date Threshold
   const now = new Date()
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
-  const paidOrdersThisMonth = paidOrders.filter((o) => new Date(o.created_at).getTime() >= startOfMonth)
-  const totalRevenueThisMonth = paidOrdersThisMonth.reduce((sum, o) => sum + Number(o.total || 0), 0)
+  let startDate = new Date(0) // Default all-time
+  let rangeLabel = 'All-Time'
+  
+  if (range === '7d') {
+    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    rangeLabel = 'Last 7 Days'
+  } else if (range === '30d') {
+    startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+    rangeLabel = 'Last 30 Days'
+  } else if (range === '12m') {
+    startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
+    rangeLabel = 'Last 12 Months'
+  }
 
-  const pendingEnquiriesCount = ((enquiries || []) as Array<{ id: string; status: string }>).filter(
-    (e) => e.status === 'new'
-  ).length
+  // Filter Data by Range
+  const filteredOrders = orders.filter((o) => new Date(o.created_at) >= startDate)
+  const paidOrders = filteredOrders.filter((o) => o.payment_status === 'paid')
+  const pendingOrders = filteredOrders.filter((o) => o.payment_status === 'pending')
+  const totalRevenue = paidOrders.reduce((sum, o) => sum + Number(o.total || 0), 0)
+
+  // All-time for comparison
+  const allTimePaidOrders = orders.filter((o) => o.payment_status === 'paid')
+  const totalRevenueAllTime = allTimePaidOrders.reduce((sum, o) => sum + Number(o.total || 0), 0)
+
+  const pendingEnquiriesCount = ((enquiries || []) as Array<{ id: string; status: string; created_at: string }>)
+    .filter((e) => e.status === 'new' && new Date(e.created_at) >= startDate)
+    .length
 
   const lowStockProducts = ((products || []) as Array<{
     id: string
@@ -153,15 +167,15 @@ export default async function AdminDashboardPage({
           <div className="bg-white border border-[#1C1C1A]/15 p-6 lg:p-8 rounded-none shadow-sm flex flex-col justify-between space-y-4 hover:border-[#1C1C1A]/40 transition-colors">
             <div>
               <span className="text-[10px] font-sans font-bold uppercase tracking-[0.22em] text-[#8C7A6B] block mb-2">
-                Total Revenue (Paid)
+                Revenue ({rangeLabel})
               </span>
               <div className="font-heading text-3xl lg:text-4xl font-bold tabular-nums text-[#1C1C1A]">
-                ₹{totalRevenueAllTime.toLocaleString('en-IN')}
+                ₹{totalRevenue.toLocaleString('en-IN')}
               </div>
             </div>
             <div className="pt-4 border-t border-[#1C1C1A]/10 flex justify-between items-center text-xs font-sans">
-              <span className="text-[#8C7A6B]">This Month:</span>
-              <span className="font-bold text-gold font-mono text-sm">₹{totalRevenueThisMonth.toLocaleString('en-IN')}</span>
+              <span className="text-[#8C7A6B]">All-Time Total:</span>
+              <span className="font-bold text-gold font-mono text-sm">₹{totalRevenueAllTime.toLocaleString('en-IN')}</span>
             </div>
           </div>
 
@@ -169,10 +183,10 @@ export default async function AdminDashboardPage({
           <div className="bg-white border border-[#1C1C1A]/15 p-6 lg:p-8 rounded-none shadow-sm flex flex-col justify-between space-y-4 hover:border-[#1C1C1A]/40 transition-colors">
             <div>
               <span className="text-[10px] font-sans font-bold uppercase tracking-[0.22em] text-[#8C7A6B] block mb-2">
-                Total Orders Count
+                Orders ({rangeLabel})
               </span>
               <div className="font-heading text-3xl lg:text-4xl font-bold tabular-nums text-[#1C1C1A]">
-                {orders.length}
+                {filteredOrders.length}
               </div>
             </div>
             <div className="pt-4 border-t border-[#1C1C1A]/10 flex justify-between items-center text-xs font-sans">
@@ -185,7 +199,7 @@ export default async function AdminDashboardPage({
           <div className="bg-white border border-[#1C1C1A]/15 p-6 lg:p-8 rounded-none shadow-sm flex flex-col justify-between space-y-4 hover:border-[#1C1C1A]/40 transition-colors">
             <div>
               <span className="text-[10px] font-sans font-bold uppercase tracking-[0.22em] text-[#8C7A6B] block mb-2">
-                Pending B2B Requests
+                B2B Requests ({rangeLabel})
               </span>
               <div className="font-heading text-3xl lg:text-4xl font-bold tabular-nums text-[#1C1C1A]">
                 {pendingEnquiriesCount}
