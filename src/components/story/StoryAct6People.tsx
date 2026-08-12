@@ -17,6 +17,7 @@ export default function StoryAct6People() {
               loop
               muted
               playsInline
+              preload="none"
               className="w-full h-full object-cover scale-[1.08] origin-top-left"
               poster="/images/women-artisans-jaggery-1.png"
             >

@@ -32,6 +32,7 @@ export default function StoryAct5Products() {
             loop
             muted
             playsInline
+            preload="none"
             className="w-full h-full object-cover scale-[1.08] origin-top-left"
             poster="/images/ginger-jaggery-powder.png"
           >
