@@ -30,7 +30,7 @@ export default function TestimonialSection(): React.JSX.Element {
   ]
 
   return (
-    <section className="py-24 md:py-32 bg-molasses overflow-x-hidden border-t border-molasses-light">
+    <section className="py-24 md:py-32 bg-molasses border-t border-molasses-light">
       <div className="container-main">
         {/* Section Header */}
         <AnimatedSection className="w-full flex justify-center mb-16">
