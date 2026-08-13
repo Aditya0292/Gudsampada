@@ -92,7 +92,7 @@ export default function HeroSection(): React.JSX.Element {
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 1, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
- className="text-white/95 text-sm md:text-base max-w-xl leading-relaxed mb-8"
+ className="text-cream text-base md:text-lg font-semibold drop-shadow-lg max-w-xl leading-relaxed mb-8"
  >
  Traditionally crafted unrefined jaggery, made using heirloom techniques. No chemical additives. Just pure, organic sugarcane nectar.
  </motion.p>
