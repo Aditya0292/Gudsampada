@@ -52,9 +52,16 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     return NextResponse.redirect(adminUrl)
   }
 
+  // Protect Admin API Routes
+  if (pathname.startsWith('/api/admin')) {
+    if (!isAuthenticated) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+  }
+
   return response
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/api/admin/:path*'],
 }

@@ -58,10 +58,24 @@ export default function StoryAct6People() {
             <span className="italic font-normal text-gold">pure, from root to home.</span>
           </motion.h3>
 
-          <div>
+          <div style={{ marginTop: '32px' }}>
             <Link
               href="/shop"
-              className="inline-block rounded-none bg-molasses hover:bg-gold text-cream font-sans font-bold text-xs uppercase tracking-[0.25em] px-10 py-5 transition-all duration-300 shadow-md"
+              style={{
+                display: 'inline-block',
+                background: 'transparent',
+                border: '1.5px solid #1c1b1a',
+                color: '#1c1b1a',
+                padding: '16px 32px',
+                fontSize: '13px',
+                fontWeight: 700,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                fontFamily: 'Outfit, sans-serif'
+              }}
+              className="hover:bg-[#1c1b1a] hover:text-white"
             >
               Explore Our Products →
             </Link>

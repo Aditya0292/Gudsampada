@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react'
 import Image from 'next/image'
-import { motion, useScroll, useMotionValueEvent, useReducedMotion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const galleryItems = [
   {
@@ -32,11 +32,16 @@ const galleryItems = [
 ]
 
 export default function GallerySlider() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const isReduced = useReducedMotion()
+  const [activeStep, setActiveStep] = useState(0)
   const [isMobile, setIsMobile] = useState(true)
   const [mounted, setMounted] = useState(false)
-  const [activeStep, setActiveStep] = useState(0)
+
+  const stepRef0 = useRef<HTMLDivElement>(null)
+  const stepRef1 = useRef<HTMLDivElement>(null)
+  const stepRef2 = useRef<HTMLDivElement>(null)
+  const stepRef3 = useRef<HTMLDivElement>(null)
+
+  const stepRefs = [stepRef0, stepRef1, stepRef2, stepRef3]
 
   useEffect(() => {
     setMounted(true)
@@ -48,40 +53,77 @@ export default function GallerySlider() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start start', 'end end'],
-  })
+  // Intersection Observer to track active step based on scroll visibility of text blocks
+  useEffect(() => {
+    if (!mounted || isMobile) return
 
-  // Dynamically update active index as user scrolls through the 4 steps
-  useMotionValueEvent(scrollYProgress, 'change', (latest) => {
-    let nextStep = 0
-    if (latest < 0.25) nextStep = 0
-    else if (latest < 0.50) nextStep = 1
-    else if (latest < 0.75) nextStep = 2
-    else nextStep = 3
-
-    if (nextStep !== activeStep) {
-      setActiveStep(nextStep)
+    const observerOptions = {
+      root: null,
+      rootMargin: '-35% 0px -35% 0px', // Trigger when item enters center 30% of viewport
+      threshold: 0.1,
     }
-  })
 
-  // Sticky Scrollytelling Layout for Desktop (only if motion is enabled and mounted)
-  if (mounted && !isMobile && !isReduced) {
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const index = Number(entry.target.getAttribute('data-step-index'))
+          if (!isNaN(index)) {
+            setActiveStep(index)
+          }
+        }
+      })
+    }
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions)
+    
+    stepRefs.forEach((ref) => {
+      if (ref.current) {
+        observer.observe(ref.current)
+      }
+    })
+
+    return () => {
+      stepRefs.forEach((ref) => {
+        if (ref.current) {
+          observer.unobserve(ref.current)
+        }
+      })
+    }
+  }, [mounted, isMobile])
+
+  const scrollToStep = (idx: number) => {
+    const ref = stepRefs[idx]
+    if (ref && ref.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }
+
+  if (!mounted) {
     return (
-      <div ref={containerRef} className="relative h-[320vh] bg-cream-dark/20">
-        <div className="sticky top-0 h-screen w-full flex items-center overflow-hidden">
-          <div className="container-main w-full grid grid-cols-12 gap-12 items-center">
+      <section className="py-24 bg-white border-t border-border">
+        <div className="container-main">
+          <div className="w-full h-[400px] bg-cream-dark/10" />
+        </div>
+      </section>
+    )
+  }
+
+  // Sticky Scrollytelling Layout for Desktop (Intersection Observer driven)
+  if (!isMobile) {
+    return (
+      <section className="bg-cream-dark/5 py-24 border-t border-border relative">
+        <div className="container-main">
+          <div className="grid grid-cols-12 gap-16 items-start">
             
-            {/* Left Column - Pinned Image with Smooth Crossfade (6 Cols) */}
-            <div className="col-span-6 relative aspect-[4/5] rounded-2xl overflow-hidden bg-cream-dark shadow-card">
+            {/* Left Column - Sticky Image Box (6 Cols) */}
+            <div className="col-span-6 sticky top-[15vh] h-[70vh] rounded-none overflow-hidden bg-cream-dark shadow-md">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeStep}
-                  initial={{ opacity: 0, scale: 1.04 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.98 }}
-                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.4 }}
                   className="absolute inset-0"
                 >
                   <Image
@@ -90,60 +132,55 @@ export default function GallerySlider() {
                     fill
                     className="object-cover"
                     priority
-                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    sizes="50vw"
                   />
                 </motion.div>
               </AnimatePresence>
             </div>
 
-            {/* Right Column - Single Active Text Block (Zero Overlap) & Step Counter (6 Cols) */}
-            <div className="col-span-6 flex flex-col pl-8 relative min-h-[380px] justify-between">
+            {/* Right Column - Scrolling Text Blocks (6 Cols) */}
+            <div className="col-span-6 flex flex-col pl-8">
               
-              {/* Overline header */}
-              <div>
+              {/* Header block */}
+              <div className="mb-16">
                 <span className="overline text-[10px] tracking-[0.25em]">Our Farm Operations</span>
                 <h2 className="font-heading text-4xl md:text-[3.25rem] font-light text-molasses leading-tight lowercase mt-2">
                   the <span className="italic font-normal text-gold">journey</span> of pure gold.
                 </h2>
               </div>
 
-              {/* Single Active Text Content with AnimatePresence mode="wait" - ZERO SUPERIMPOSITION */}
-              <div className="relative my-8 min-h-[180px] flex items-center">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeStep}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -15 }}
-                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                    className="flex flex-col space-y-3"
+              {/* Scrolling Text Blocks with generous breathing space */}
+              <div className="space-y-[30vh] pb-[20vh]">
+                {galleryItems.map((item, idx) => (
+                  <div
+                    key={item.step}
+                    ref={stepRefs[idx]}
+                    data-step-index={idx}
+                    className="min-h-[40vh] flex flex-col justify-center pt-8"
+                    style={{ fontFamily: 'Outfit, sans-serif' }}
                   >
-                    <span className="font-heading text-6xl text-gold/35 font-light select-none leading-none">
-                      {galleryItems[activeStep].step}
+                    <span className="font-heading text-6xl text-gold/35 font-light select-none leading-none mb-3">
+                      {item.step}
                     </span>
-                    <h3 className="font-heading text-2xl md:text-3xl text-molasses lowercase">
-                      {galleryItems[activeStep].title}
+                    <h3 className="font-heading text-2xl md:text-3xl text-molasses lowercase mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
+                      {item.title}
                     </h3>
                     <p className="text-molasses-light text-base font-serif font-light leading-relaxed max-w-md">
-                      {galleryItems[activeStep].desc}
+                      {item.desc}
                     </p>
-                  </motion.div>
-                </AnimatePresence>
+                  </div>
+                ))}
               </div>
 
-              {/* Bottom Numbers Row (01, 02, 03, 04) - Active Number Shifts on Scroll */}
-              <div className="flex items-center gap-8 pt-6 border-t border-molasses/10">
+              {/* Floating Bottom Numbers Row (01, 02, 03, 04) */}
+              <div className="sticky bottom-8 bg-[#F9F6F0]/90 backdrop-blur-xs py-4 border-t border-molasses/10 flex items-center gap-8 z-10 w-full">
                 {galleryItems.map((item, idx) => {
                   const isActive = activeStep === idx
                   return (
                     <button
                       key={item.step}
-                      onClick={() => {
-                        if (!containerRef.current) return
-                        const targetPos = containerRef.current.offsetTop + (idx / 3) * (containerRef.current.offsetHeight - window.innerHeight)
-                        window.scrollTo({ top: targetPos, behavior: 'smooth' })
-                      }}
-                      className="flex flex-col items-center gap-1 group cursor-pointer"
+                      onClick={() => scrollToStep(idx)}
+                      className="flex flex-col items-center gap-1 group cursor-pointer bg-transparent border-none p-0"
                       aria-label={`Jump to step ${item.step}`}
                     >
                       <span
@@ -154,7 +191,7 @@ export default function GallerySlider() {
                         {item.step}
                       </span>
                       <div
-                        className={`h-0.5 rounded-full transition-all duration-300 ${
+                        className={`h-0.5 rounded-none transition-all duration-300 ${
                           isActive ? 'w-6 bg-gold' : 'w-0 bg-transparent'
                         }`}
                       />
@@ -166,11 +203,11 @@ export default function GallerySlider() {
             </div>
           </div>
         </div>
-      </div>
+      </section>
     )
   }
 
-  // Graceful Static Fallback for Mobile and prefers-reduced-motion
+  // Graceful Static Fallback for Mobile
   return (
     <section className="py-24 bg-white overflow-hidden border-t border-border">
       <div className="container-main">
@@ -184,7 +221,7 @@ export default function GallerySlider() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {galleryItems.map((item, index) => (
             <div key={index} className="flex flex-col">
-              <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-cream-dark mb-4 shadow-xs">
+              <div className="relative aspect-[4/5] rounded-none overflow-hidden bg-cream-dark mb-4 shadow-xs">
                 <Image
                   src={item.image}
                   alt={item.title}

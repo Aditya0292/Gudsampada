@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter, Playfair_Display } from 'next/font/google'
+import { Inter, Playfair_Display, Outfit } from 'next/font/google'
 import './globals.css'
 import { LenisProvider } from '@/components/providers/LenisProvider'
 
@@ -12,6 +12,12 @@ const inter = Inter({
 const playfair = Playfair_Display({
  subsets: ['latin'],
  variable: '--font-playfair',
+ display: 'swap',
+})
+
+const outfit = Outfit({
+ subsets: ['latin'],
+ variable: '--font-outfit',
  display: 'swap',
 })
 
@@ -67,7 +73,7 @@ export default function RootLayout({
  children: React.ReactNode
 }>) {
  return (
- <html lang="en" className={`${inter.variable} ${playfair.variable}`} data-scroll-behavior="smooth" suppressHydrationWarning>
+ <html lang="en" className={`${inter.variable} ${playfair.variable} ${outfit.variable}`} data-scroll-behavior="smooth" suppressHydrationWarning>
  <body>
  <Preloader />
  <LenisProvider>{children}</LenisProvider>

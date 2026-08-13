@@ -23,10 +23,18 @@ export interface Database {
           description: string | null
           price_250g: number
           price_500g: number
+          original_price_250g: number | null
+          original_price_500g: number | null
           stock_250g: number
           stock_500g: number
           weight_grams: number
           image_url: string | null
+          images: string[] | null
+          category: string | null
+          tagline: string | null
+          badge: string | null
+          how_to_use: string | null
+          benefits: string | null
           created_at: string
         }
         Insert: {
@@ -36,10 +44,18 @@ export interface Database {
           description?: string | null
           price_250g: number
           price_500g: number
+          original_price_250g?: number | null
+          original_price_500g?: number | null
           stock_250g?: number
           stock_500g?: number
           weight_grams?: number
           image_url?: string | null
+          images?: string[] | null
+          category?: string | null
+          tagline?: string | null
+          badge?: string | null
+          how_to_use?: string | null
+          benefits?: string | null
           created_at?: string
         }
         Update: {
@@ -49,10 +65,18 @@ export interface Database {
           description?: string | null
           price_250g?: number
           price_500g?: number
+          original_price_250g?: number | null
+          original_price_500g?: number | null
           stock_250g?: number
           stock_500g?: number
           weight_grams?: number
           image_url?: string | null
+          images?: string[] | null
+          category?: string | null
+          tagline?: string | null
+          badge?: string | null
+          how_to_use?: string | null
+          benefits?: string | null
           created_at?: string
         }
       }
@@ -72,12 +96,14 @@ export interface Database {
           order_status: OrderStatus
           razorpay_order_id: string | null
           razorpay_payment_id: string | null
+          razorpay_signature: string | null
           checkout_method: CheckoutMethod
           email_sent: boolean
           email_sent_at: string | null
           shiprocket_order_id: string | null
           shiprocket_shipment_id: string | null
           awb_number: string | null
+          tracking_number: string | null
           courier_name: string | null
           tracking_url: string | null
           shipment_status: string | null
@@ -98,12 +124,14 @@ export interface Database {
           order_status?: OrderStatus
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
           checkout_method?: CheckoutMethod
           email_sent?: boolean
           email_sent_at?: string | null
           shiprocket_order_id?: string | null
           shiprocket_shipment_id?: string | null
           awb_number?: string | null
+          tracking_number?: string | null
           courier_name?: string | null
           tracking_url?: string | null
           shipment_status?: string | null
@@ -124,12 +152,14 @@ export interface Database {
           order_status?: OrderStatus
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
           checkout_method?: CheckoutMethod
           email_sent?: boolean
           email_sent_at?: string | null
           shiprocket_order_id?: string | null
           shiprocket_shipment_id?: string | null
           awb_number?: string | null
+          tracking_number?: string | null
           courier_name?: string | null
           tracking_url?: string | null
           shipment_status?: string | null

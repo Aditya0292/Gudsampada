@@ -17,12 +17,7 @@ export interface AdminOrder {
   customer_name: string
   customer_phone: string
   customer_email?: string | null
-  shipping_address: {
-    line1: string
-    city: string
-    state: string
-    pincode: string
-  }
+  shipping_address: { line1: string; city: string; state: string; pincode: string }
   items: OrderItem[]
   subtotal: number
   shipping_fee: number
@@ -48,243 +43,164 @@ interface OrdersTableProps {
   initialOrders: AdminOrder[]
 }
 
+const S = {
+  label: { fontSize: '10px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: '#8a8880', fontFamily: 'Outfit, sans-serif' },
+}
+
+const paymentColor = (s: string) => {
+  if (s === 'paid') return '#2E7D32'
+  if (s === 'failed') return '#ba1a1a'
+  if (s === 'refunded') return '#6a1b9a'
+  return '#b56a00'
+}
+
 export default function OrdersTable({ initialOrders }: OrdersTableProps): React.JSX.Element {
   const [search, setSearch] = useState('')
-  const [paymentFilter, setPaymentFilter] = useState<string>('all')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [paymentFilter, setPaymentFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
   const [sortBy, setSortBy] = useState<'date_desc' | 'date_asc' | 'total_desc' | 'total_asc'>('date_desc')
   const [currentPage, setCurrentPage] = useState(1)
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const pageSize = 25
 
-  // Filtering & Searching Logic
   const filteredOrders = useMemo(() => {
-    return initialOrders.filter((order) => {
-      // Search term check
-      const query = search.toLowerCase().trim()
-      const matchesSearch =
-        !query ||
-        order.order_number.toLowerCase().includes(query) ||
-        order.customer_name.toLowerCase().includes(query) ||
-        order.customer_phone.toLowerCase().includes(query)
-
-      // Payment status check
-      const matchesPayment = paymentFilter === 'all' || order.payment_status === paymentFilter
-
-      // Order status check
-      const matchesStatus = statusFilter === 'all' || order.order_status === statusFilter
-
-      return matchesSearch && matchesPayment && matchesStatus
+    return initialOrders.filter((o) => {
+      const q = search.toLowerCase()
+      const matchSearch = !q || o.order_number.toLowerCase().includes(q) || o.customer_name.toLowerCase().includes(q) || o.customer_phone.includes(q)
+      const matchPayment = paymentFilter === 'all' || o.payment_status === paymentFilter
+      const matchStatus = statusFilter === 'all' || o.order_status === statusFilter
+      return matchSearch && matchPayment && matchStatus
     })
   }, [initialOrders, search, paymentFilter, statusFilter])
 
-  // Sorting Logic
-  const sortedOrders = useMemo(() => {
+  const sorted = useMemo(() => {
     return [...filteredOrders].sort((a, b) => {
       if (sortBy === 'date_desc') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       if (sortBy === 'date_asc') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       if (sortBy === 'total_desc') return Number(b.total) - Number(a.total)
-      if (sortBy === 'total_asc') return Number(a.total) - Number(b.total)
-      return 0
+      return Number(a.total) - Number(b.total)
     })
   }, [filteredOrders, sortBy])
 
-  // Pagination Logic
-  const totalPages = Math.ceil(sortedOrders.length / pageSize) || 1
-  const paginatedOrders = useMemo(() => {
-    const start = (currentPage - 1) * pageSize
-    return sortedOrders.slice(start, start + pageSize)
-  }, [sortedOrders, currentPage, pageSize])
+  const totalPages = Math.ceil(sorted.length / pageSize) || 1
+  const paginated = useMemo(() => sorted.slice((currentPage - 1) * pageSize, currentPage * pageSize), [sorted, currentPage])
 
   return (
-    <div className="space-y-6">
-      {/* Search & Filter Toolbar */}
-      <div className="bg-white border border-[#1C1C1A]/15 p-4 sm:p-6 rounded-none grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end shadow-sm">
-        {/* Search */}
-        <div>
-          <label className="text-[9px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] block mb-1.5">
-            Search Orders
-          </label>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value)
-              setCurrentPage(1)
-            }}
-            placeholder="Order #, Name, Phone..."
-            className="w-full h-10 bg-[#F9F6F0] border border-[#1C1C1A]/20 px-3 text-xs font-sans text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none"
-          />
-        </div>
-
-        {/* Payment Filter */}
-        <div>
-          <label className="text-[9px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] block mb-1.5">
-            Payment Status
-          </label>
-          <select
-            value={paymentFilter}
-            onChange={(e) => {
-              setPaymentFilter(e.target.value)
-              setCurrentPage(1)
-            }}
-            className="w-full h-10 bg-[#F9F6F0] border border-[#1C1C1A]/20 px-3 text-xs font-sans text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none cursor-pointer"
-          >
-            <option value="all">All Payment Statuses</option>
-            <option value="paid">Paid</option>
-            <option value="pending">Pending</option>
-            <option value="failed">Failed</option>
-            <option value="refunded">Refunded</option>
-          </select>
-        </div>
-
-        {/* Order Status Filter */}
-        <div>
-          <label className="text-[9px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] block mb-1.5">
-            Fulfillment Status
-          </label>
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value)
-              setCurrentPage(1)
-            }}
-            className="w-full h-10 bg-[#F9F6F0] border border-[#1C1C1A]/20 px-3 text-xs font-sans text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none cursor-pointer"
-          >
-            <option value="all">All Order Statuses</option>
-            <option value="placed">Placed</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="shipped">Shipped</option>
-            <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </div>
-
-        {/* Sort By */}
-        <div>
-          <label className="text-[9px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] block mb-1.5">
-            Sort Order
-          </label>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            className="w-full h-10 bg-[#F9F6F0] border border-[#1C1C1A]/20 px-3 text-xs font-sans text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none cursor-pointer"
-          >
-            <option value="date_desc">Date: Newest First</option>
-            <option value="date_asc">Date: Oldest First</option>
-            <option value="total_desc">Total Amount: High to Low</option>
-            <option value="total_asc">Total Amount: Low to High</option>
-          </select>
-        </div>
+    <div style={{ fontFamily: 'Outfit, sans-serif' }}>
+      {/* Filters row */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '28px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <select value={paymentFilter} onChange={(e) => { setPaymentFilter(e.target.value); setCurrentPage(1) }}
+          style={{ border: 'none', borderBottom: '1px solid rgba(200,193,182,0.8)', background: 'transparent', padding: '6px 0', fontSize: '12px', color: '#474741', cursor: 'pointer', fontFamily: 'Outfit, sans-serif' }}>
+          <option value="all">All Payment Statuses</option>
+          <option value="paid">Paid</option>
+          <option value="pending">Pending</option>
+          <option value="failed">Failed</option>
+          <option value="refunded">Refunded</option>
+        </select>
+        <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1) }}
+          style={{ border: 'none', borderBottom: '1px solid rgba(200,193,182,0.8)', background: 'transparent', padding: '6px 0', fontSize: '12px', color: '#474741', cursor: 'pointer', fontFamily: 'Outfit, sans-serif' }}>
+          <option value="all">All Fulfillment Statuses</option>
+          <option value="placed">Placed</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+          style={{ border: 'none', borderBottom: '1px solid rgba(200,193,182,0.8)', background: 'transparent', padding: '6px 0', fontSize: '12px', color: '#474741', cursor: 'pointer', fontFamily: 'Outfit, sans-serif' }}>
+          <option value="date_desc">Newest First</option>
+          <option value="date_asc">Oldest First</option>
+          <option value="total_desc">Total: High → Low</option>
+          <option value="total_asc">Total: Low → High</option>
+        </select>
+        <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#8a8880' }}>
+          {sorted.length} order{sorted.length !== 1 ? 's' : ''}
+        </span>
       </div>
 
-      {/* Orders Table */}
-      <div className="bg-white border border-[#1C1C1A]/15 rounded-none overflow-hidden shadow-sm">
-        {paginatedOrders.length === 0 ? (
-          <div className="p-8 sm:p-12 text-center text-molasses/60 space-y-2">
-            <p className="font-serif text-base sm:text-lg">No matching orders found.</p>
-            <p className="text-xs font-sans text-molasses/40">Try adjusting your search terms or status filters.</p>
+      {/* Table header & rows scroll container */}
+      <div className="overflow-x-auto w-full -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div style={{ minWidth: '700px' }}>
+          {/* Table header */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 2fr 1fr 1fr 1fr 60px', borderBottom: '2px solid #1c1b1a', paddingBottom: '12px' }}>
+            {['Order Ref', 'Customer Info', 'Total', 'Payment', 'Fulfillment', 'Actions'].map((h) => (
+              <span key={h} style={S.label}>{h}</span>
+            ))}
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-sans min-w-[700px]">
-              <thead>
-                <tr className="border-b-2 border-[#1C1C1A] bg-[#1C1C1A] text-[#F9F6F0] text-[10px] uppercase tracking-wider">
-                  <th className="py-3.5 px-4 font-bold">Order Reference</th>
-                  <th className="py-3.5 px-4 font-bold">Customer Info</th>
-                  <th className="py-3.5 px-4 font-bold">Items Count</th>
-                  <th className="py-3.5 px-4 font-bold">Total</th>
-                  <th className="py-3.5 px-4 font-bold">Payment</th>
-                  <th className="py-3.5 px-4 font-bold">Fulfillment</th>
-                  <th className="py-3.5 px-4 font-bold">Date</th>
-                  <th className="py-3.5 px-4 font-bold text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#1C1C1A]/10">
-                {paginatedOrders.map((order) => {
-                  const itemCount = (order.items || []).reduce((acc, item) => acc + (item.qty || 1), 0)
-                  return (
-                    <tr key={order.id} className="hover:bg-[#F9F6F0] transition-colors">
-                      <td className="py-4 px-4 font-mono font-bold text-[#1C1C1A]">
-                        {order.order_number}
-                      </td>
-                      <td className="py-4 px-4">
-                        <span className="font-bold text-[#1C1C1A] block">{order.customer_name}</span>
-                        <span className="text-[11px] text-molasses/60 font-mono">{order.customer_phone}</span>
-                      </td>
-                      <td className="py-4 px-4 font-serif text-molasses">
-                        {itemCount} {itemCount === 1 ? 'item' : 'items'}
-                      </td>
-                      <td className="py-4 px-4 font-mono font-bold text-[#1C1C1A]">
-                        ₹{Number(order.total || 0).toLocaleString('en-IN')}
-                      </td>
-                      <td className="py-4 px-4">
-                        <span
-                          className={`inline-block text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-none ${
-                            order.payment_status === 'paid'
-                              ? 'bg-forest/15 text-forest border border-forest/30'
-                              : order.payment_status === 'failed'
-                              ? 'bg-terracotta/15 text-terracotta border border-terracotta/30'
-                              : 'bg-gold/15 text-gold border border-gold/30'
-                          }`}
-                        >
-                          {order.payment_status}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4 capitalize font-medium text-molasses">
-                        {order.order_status}
-                      </td>
-                      <td className="py-4 px-4 text-molasses/60 text-[11px] whitespace-nowrap">
-                        {new Date(order.created_at).toLocaleDateString('en-IN', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
-                      </td>
-                      <td className="py-4 px-4 text-right">
-                        <Link
-                          href={`/admin/orders/${order.id}`}
-                          className="inline-flex items-center justify-center bg-[#1C1C1A] hover:bg-gold text-white font-bold text-[11px] uppercase tracking-widest px-4 py-2 rounded-none transition-colors whitespace-nowrap"
-                        >
-                          Manage →
-                        </Link>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
 
-        {/* Pagination Bar */}
-        {totalPages > 1 && (
-          <div className="px-4 sm:px-6 py-4 border-t border-[#1C1C1A]/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-sans">
-            <span className="text-molasses/60 text-center sm:text-left">
-              Showing {(currentPage - 1) * pageSize + 1}–
-              {Math.min(currentPage * pageSize, sortedOrders.length)} of {sortedOrders.length} orders
-            </span>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1.5 border border-[#1C1C1A]/20 text-molasses hover:border-[#1C1C1A] disabled:opacity-30 rounded-none cursor-pointer"
-              >
-                ← Prev
-              </button>
-              <span className="px-3 py-1.5 font-bold font-mono text-molasses">
-                {currentPage} / {totalPages}
-              </span>
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1.5 border border-[#1C1C1A]/20 text-molasses hover:border-[#1C1C1A] disabled:opacity-30 rounded-none cursor-pointer"
-              >
-                Next →
-              </button>
+          {/* Rows */}
+          {paginated.length === 0 ? (
+            <div style={{ padding: '72px 0', textAlign: 'center', color: '#8a8880', fontSize: '14px' }}>
+              No orders match your filters.
             </div>
-          </div>
-        )}
+          ) : (
+            paginated.map((order) => (
+              <div
+                key={order.id}
+                style={{ display: 'grid', gridTemplateColumns: '1.4fr 2fr 1fr 1fr 1fr 60px', borderBottom: '1px solid rgba(200,193,182,0.35)', padding: '22px 0', alignItems: 'center', position: 'relative' }}
+                onClick={() => setOpenMenuId(null)}
+              >
+                <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '13px', color: '#010100' }}>
+                  {order.order_number}
+                </span>
+                <div>
+                  <span style={{ fontSize: '14px', fontWeight: 600, color: '#c9a96e', display: 'block' }}>{order.customer_name}</span>
+                  <span style={{ fontSize: '12px', color: '#8a8880', fontFamily: 'monospace' }}>{order.customer_phone}</span>
+                </div>
+                <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '13px', color: '#010100' }}>
+                  ₹{Number(order.total || 0).toLocaleString('en-IN')}
+                </span>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: paymentColor(order.payment_status), textTransform: 'capitalize' }}>
+                  {order.payment_status}
+                </span>
+                <span style={{ fontSize: '12px', color: '#8a8880', textTransform: 'capitalize' }}>
+                  {order.order_status}
+                </span>
+                {/* Three-dot action menu */}
+                <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+                  <button
+                    onClick={() => setOpenMenuId(openMenuId === order.id ? null : order.id)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: '#8a8880', padding: '0 8px', lineHeight: 1 }}
+                  >
+                    ⋮
+                  </button>
+                  {openMenuId === order.id && (
+                    <div style={{ position: 'absolute', right: 0, top: '100%', background: '#fff', border: '1px solid rgba(200,193,182,0.6)', zIndex: 50, minWidth: '140px', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
+                      <Link href={`/admin/orders/${order.id}`}
+                        style={{ display: 'block', padding: '12px 16px', fontSize: '12px', fontWeight: 600, color: '#010100', textDecoration: 'none', borderBottom: '1px solid rgba(200,193,182,0.3)' }}
+                        onClick={() => setOpenMenuId(null)}>
+                        View Details
+                      </Link>
+                      <Link href={`/admin/orders/${order.id}`}
+                        style={{ display: 'block', padding: '12px 16px', fontSize: '12px', fontWeight: 600, color: '#010100', textDecoration: 'none' }}
+                        onClick={() => setOpenMenuId(null)}>
+                        Manage Order
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '24px', fontSize: '12px', color: '#8a8880' }}>
+          <span>Showing {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, sorted.length)} of {sorted.length}</span>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}
+              style={{ padding: '6px 14px', border: '1px solid rgba(200,193,182,0.6)', background: 'transparent', cursor: 'pointer', fontSize: '12px', color: '#474741' }}>
+              ← Prev
+            </button>
+            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}
+              style={{ padding: '6px 14px', border: '1px solid rgba(200,193,182,0.6)', background: 'transparent', cursor: 'pointer', fontSize: '12px', color: '#474741' }}>
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

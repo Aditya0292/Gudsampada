@@ -37,7 +37,7 @@ export default async function AdminOrderDetailPage({
   }
 
   return (
-    <div className="w-full px-4 sm:px-6 md:px-10 lg:px-12 py-6 sm:py-8">
+    <div className="w-full py-16 space-y-8">
       <OrderDetailClient order={order} />
     </div>
   )

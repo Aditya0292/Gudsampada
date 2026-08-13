@@ -2,7 +2,6 @@
 
 import React from 'react'
 import Image from 'next/image'
-import Button from '@/components/ui/Button'
 
 interface CartItem {
   id: string
@@ -25,6 +24,26 @@ interface CheckoutSummaryProps {
   onPlaceOrder: () => void
 }
 
+const S = {
+  sectionTitle: {
+    fontFamily: 'Playfair Display, serif',
+    fontSize: '22px',
+    fontWeight: 500,
+    color: '#010100',
+    borderBottom: '1px solid rgba(200,193,182,0.45)',
+    paddingBottom: '12px',
+    marginBottom: '20px',
+  },
+  label: {
+    fontSize: '11px',
+    fontWeight: 600,
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase' as const,
+    color: '#8a8880',
+    fontFamily: 'Outfit, sans-serif',
+  }
+}
+
 export default function CheckoutSummary({
   items,
   subtotal,
@@ -36,81 +55,101 @@ export default function CheckoutSummary({
   onPlaceOrder,
 }: CheckoutSummaryProps): React.JSX.Element {
   return (
-    <div className="border border-[#2D241E]/20 rounded-none p-6 md:p-8 bg-[#F7F4EE]/50 space-y-8">
-      <h2 className="font-heading text-xl text-molasses lowercase tracking-tight border-b border-molasses/10 pb-3">
-        order summary
-      </h2>
+    <div style={{ border: '1px solid rgba(200,193,182,0.5)', background: '#fff', padding: '32px', fontFamily: 'Outfit, sans-serif' }}>
+      <h2 style={S.sectionTitle}>order summary</h2>
 
       {/* Cart Items List */}
-      <div className="divide-y divide-[#2D241E]/10 max-h-[300px] overflow-y-auto pr-1">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '300px', overflowY: 'auto', marginBottom: '24px' }}>
         {items.map((item) => (
-          <div key={`${item.id}-${item.variantId}`} className="flex items-center space-x-4 py-4 first:pt-0 last:pb-0">
-            <div className="relative w-12 h-15 bg-cream border border-[#2D241E]/10 rounded-none overflow-hidden flex-shrink-0">
-              <Image src={item.image} alt={item.name} fill className="object-cover" sizes="48px" />
+          <div key={`${item.id}-${item.variantId}`} style={{ display: 'flex', alignItems: 'center', gap: '16px', paddingBottom: '16px', borderBottom: '1px solid rgba(200,193,182,0.25)' }}>
+            <div style={{ position: 'relative', width: '48px', height: '60px', background: '#f5f0ef', border: '1px solid rgba(200,193,182,0.4)', flexShrink: 0 }}>
+              <Image src={item.image} alt={item.name} fill className="object-contain p-1" sizes="48px" />
             </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-heading text-sm text-molasses leading-tight truncate">{item.name}</h3>
-              <p className="text-[10px] font-sans text-molasses/50 uppercase tracking-wider mt-1">
+            
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '15px', fontWeight: 500, color: '#010100', margin: '0 0 2px', lineHeight: 1.3 }}>
+                {item.name}
+              </h3>
+              <span style={{ fontSize: '11px', color: '#8a8880', fontWeight: 600, textTransform: 'uppercase' }}>
                 {item.variant} x {item.quantity}
-              </p>
+              </span>
             </div>
-            <span className="font-sans font-semibold text-sm text-molasses text-right">
+
+            <span style={{ fontFamily: 'Playfair Display, serif', fontSize: '15px', fontWeight: 500, color: '#010100' }}>
               ₹{(item.price * item.quantity).toLocaleString('en-IN')}
             </span>
           </div>
         ))}
       </div>
 
-      {/* Charge Breakdown */}
-      <div className="border-t border-molasses/10 pt-6 space-y-3.5 text-sm">
-        <div className="flex justify-between text-molasses-lighter">
-          <span className="font-serif">Subtotal (Item Price)</span>
-          <span className="font-sans font-semibold">₹{subtotal.toLocaleString('en-IN')}</span>
+      {/* Pricing breakdown */}
+      <div style={{ borderTop: '1px solid rgba(200,193,182,0.4)', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '13px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#474741' }}>
+          <span>Subtotal (Item Price)</span>
+          <span style={{ fontWeight: 600, color: '#010100' }}>₹{subtotal.toLocaleString('en-IN')}</span>
         </div>
-        <div className="flex justify-between text-molasses-lighter">
-          <span className="font-serif">Shipping & Handling</span>
-          <span className="font-sans font-semibold text-forest">
+        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#474741' }}>
+          <span>Shipping &amp; Handling</span>
+          <span style={{ fontWeight: 600, color: '#2E7D32' }}>
             {delivery === 0 ? 'Free Delivery' : `₹${delivery.toLocaleString('en-IN')}`}
           </span>
         </div>
-        <div className="flex justify-between text-molasses-lighter">
-          <span className="font-serif">Estimated GST (Included 5%)</span>
-          <span className="font-sans font-semibold">₹{estimatedTax.toLocaleString('en-IN')}</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#474741' }}>
+          <span>Estimated GST (Included 5%)</span>
+          <span style={{ fontWeight: 600, color: '#010100' }}>₹{estimatedTax.toLocaleString('en-IN')}</span>
         </div>
 
-        {/* Grand Total */}
-        <div className="flex justify-between items-center text-molasses border-t border-molasses/10 pt-4 text-base font-bold">
-          <span className="font-serif">Total</span>
-          <span className="font-sans text-lg">₹{total.toLocaleString('en-IN')}</span>
+        {/* Total */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderTop: '1px solid rgba(200,193,182,0.4)', paddingTop: '16px', marginBottom: '8px' }}>
+          <span style={{ ...S.label, color: '#010100' }}>Total</span>
+          <span style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', fontWeight: 500, color: '#010100' }}>
+            ₹{total.toLocaleString('en-IN')}
+          </span>
         </div>
       </div>
 
-      {/* CTA Checkout Button */}
-      <Button
+      {/* Place Order CTA Block Button */}
+      <button
         onClick={onPlaceOrder}
         disabled={isSubmitting || items.length === 0}
-        variant="primary"
-        loading={isSubmitting}
-        className="w-full py-5 text-center flex items-center justify-center space-x-3 shadow-md"
-        id="place-order-cta"
+        style={{
+          width: '100%',
+          background: '#1c1b1a',
+          color: '#fff',
+          border: 'none',
+          padding: '16px',
+          fontSize: '11px',
+          fontWeight: 700,
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          cursor: 'pointer',
+          opacity: isSubmitting || items.length === 0 ? 0.6 : 1,
+          transition: 'opacity 0.15s',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          boxSizing: 'border-box',
+          borderRadius: 0,
+        }}
       >
         {paymentPreference === 'online' ? (
           <>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-1">
-              <rect x="2" y="5" width="20" height="14" rx="2" />
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <rect x="2" y="5" width="20" height="14" rx="0" />
               <line x1="2" y1="10" x2="22" y2="10" />
             </svg>
-            <span>Pay Online (Razorpay) — ₹{total.toLocaleString('en-IN')}</span>
+            <span>Pay Online — ₹{total.toLocaleString('en-IN')}</span>
           </>
         ) : (
           <>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-1">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
             <span>Place Order via WhatsApp — ₹{total.toLocaleString('en-IN')}</span>
           </>
         )}
-      </Button>
+      </button>
     </div>
   )
 }

@@ -38,6 +38,38 @@ const ORDER_STEPS = [
   { id: 'delivered', label: 'Delivered' },
 ]
 
+const S = {
+  sectionTitle: {
+    fontFamily: 'Playfair Display, serif',
+    fontSize: '22px',
+    fontWeight: 500,
+    color: '#010100',
+    marginBottom: '20px',
+  },
+  label: {
+    display: 'block',
+    fontSize: '10px',
+    fontWeight: 700,
+    letterSpacing: '0.12em',
+    textTransform: 'uppercase' as const,
+    color: '#8a8880',
+    fontFamily: 'Outfit, sans-serif',
+    marginBottom: '4px',
+  },
+  input: {
+    width: '100%',
+    border: 'none',
+    borderBottom: '1px solid rgba(200,193,182,0.8)',
+    background: 'transparent',
+    padding: '10px 0',
+    fontSize: '14px',
+    color: '#010100',
+    outline: 'none',
+    fontFamily: 'Outfit, sans-serif',
+    borderRadius: 0,
+  }
+}
+
 function TrackOrderContent(): React.JSX.Element {
   const searchParams = useSearchParams()
   const initialOrderNum = searchParams ? (searchParams.get('order') || searchParams.get('num') || '') : ''
@@ -94,53 +126,49 @@ function TrackOrderContent(): React.JSX.Element {
   const currentStep = orderData ? getStepIndex(orderData.order_status) : 0
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F9F6F0] text-[#1C1C1A]">
+    <div style={{ background: '#f9f4f1', minHeight: '100vh', fontFamily: 'Outfit, sans-serif', display: 'flex', flexDirection: 'column' }}>
       <Header />
 
-      <main className="main-page-padding flex-1 w-full pb-20 pt-8">
-        <div className="container-main max-w-3xl mx-auto w-full space-y-8">
+      <main className="px-4 sm:px-12 py-12 sm:py-16 w-full max-w-3xl" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', boxSizing: 'border-box', margin: '0 auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', width: '100%' }}>
+          
           {/* Header Banner */}
-          <div className="text-center space-y-3 pt-4">
-            <span className="inline-block px-3.5 py-1 bg-[#1C1C1A] text-gold font-sans font-bold text-[10px] uppercase tracking-[0.25em]">
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a96e', background: '#f5f0ef', padding: '8px 20px', border: '1px solid rgba(200,193,182,0.6)', display: 'inline-block', marginBottom: '16px' }}>
               Guest Order Tracking
             </span>
-            <h1 className="font-heading text-3xl sm:text-4xl font-bold text-[#1C1C1A] block leading-tight">
+            <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '38px', fontWeight: 500, color: '#010100', margin: 0 }}>
               Track Your Package
             </h1>
-            <p className="font-sans text-xs sm:text-sm text-molasses/70 max-w-lg mx-auto leading-relaxed">
+            <p style={{ fontSize: '14px', color: '#8a8880', marginTop: '12px', lineHeight: 1.6 }}>
               Enter your Order Number and Phone Number below to check real-time dispatch and courier status.
             </p>
           </div>
 
-          {/* Lookup Form */}
-          <div className="bg-white border border-[#1C1C1A]/15 p-6 sm:p-8 rounded-none shadow-sm space-y-6">
-            <form onSubmit={handleTrackSubmit} className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Form Card */}
+          <div style={{ border: '1px solid rgba(200,193,182,0.5)', background: '#fff', padding: '32px' }}>
+            <form onSubmit={handleTrackSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] mb-2">
-                    Order Number *
-                  </label>
+                  <label style={S.label}>Order Number *</label>
                   <input
                     type="text"
                     required
                     value={orderNumber}
                     onChange={(e) => setOrderNumber(e.target.value)}
                     placeholder="e.g. GS-2026-8492"
-                    className="w-full h-12 bg-[#F9F6F0] border border-[#1C1C1A]/20 px-4 text-base font-mono text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none uppercase"
+                    style={{ ...S.input, textTransform: 'uppercase' }}
                   />
                 </div>
-
                 <div>
-                  <label className="block text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] mb-2">
-                    Phone Number *
-                  </label>
+                  <label style={S.label}>Phone Number *</label>
                   <input
                     type="tel"
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="e.g. 9876543210"
-                    className="w-full h-12 bg-[#F9F6F0] border border-[#1C1C1A]/20 px-4 text-base font-sans text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none"
+                    style={S.input}
                   />
                 </div>
               </div>
@@ -148,21 +176,36 @@ function TrackOrderContent(): React.JSX.Element {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 bg-[#1C1C1A] hover:bg-gold text-white hover:text-[#1C1C1A] font-sans font-bold text-xs uppercase tracking-[0.2em] transition-all rounded-none cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-2 shadow-sm"
+                style={{
+                  width: '100%',
+                  background: '#1c1b1a',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '16px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  opacity: loading ? 0.6 : 1,
+                  transition: 'opacity 0.15s',
+                  borderRadius: 0,
+                  boxSizing: 'border-box',
+                }}
               >
                 {loading ? 'Locating Order...' : 'Track Order Status →'}
               </button>
             </form>
 
             {errorMsg && (
-              <div className="p-4 bg-terracotta/10 border border-terracotta/30 text-terracotta text-xs font-sans text-center rounded-none leading-relaxed">
+              <div style={{ marginTop: '24px', padding: '16px', background: 'rgba(186,26,26,0.08)', border: '1px solid rgba(186,26,26,0.3)', color: '#ba1a1a', fontSize: '13px', textAlign: 'center' }}>
                 {errorMsg}
-                <div className="mt-2 pt-2 border-t border-terracotta/20">
+                <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(186,26,26,0.2)' }}>
                   <a
                     href="https://wa.me/919876543210?text=Hi%20GudSampada,%20I%20need%20help%20tracking%20my%20order."
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center text-[10px] font-bold text-terracotta underline hover:text-[#1C1C1A]"
+                    style={{ fontSize: '11px', fontWeight: 700, color: '#1c1b1a', textDecoration: 'underline' }}
                   >
                     💬 Contact Support on WhatsApp
                   </a>
@@ -171,49 +214,56 @@ function TrackOrderContent(): React.JSX.Element {
             )}
           </div>
 
-          {/* Results Display */}
+          {/* Results Box */}
           {orderData && (
-            <div className="bg-white border border-[#1C1C1A]/15 p-6 sm:p-8 rounded-none shadow-sm space-y-8 animate-fadeIn">
-              {/* Order Top Banner */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1C1C1A]/10 pb-4 gap-3">
+            <div style={{ border: '1px solid rgba(200,193,182,0.5)', background: '#fff', padding: '32px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid rgba(200,193,182,0.35)', paddingBottom: '20px' }}>
                 <div>
-                  <span className="text-[9px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] block">
-                    Active Order
-                  </span>
-                  <h2 className="font-mono text-2xl font-bold text-[#1C1C1A]">{orderData.order_number}</h2>
+                  <span style={S.label}>Active Order</span>
+                  <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 700, color: '#010100', margin: 0 }}>
+                    {orderData.order_number}
+                  </h2>
                 </div>
-                <div className="text-left sm:text-right">
-                  <span className="text-xs font-serif text-molasses/60 block">
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '12px', color: '#8a8880', display: 'block' }}>
                     Placed on {new Date(orderData.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </span>
-                  <span className="inline-block mt-1 px-2.5 py-0.5 bg-forest/15 text-forest border border-forest/30 text-[10px] font-bold uppercase tracking-wider">
+                  <span style={{ display: 'inline-block', marginTop: '6px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#2E7D32', background: '#E8F5E9', padding: '4px 12px', border: '1px solid currentColor' }}>
                     Payment: {orderData.payment_status}
                   </span>
                 </div>
               </div>
 
-              {/* Progress Timeline Tracker */}
-              <div className="space-y-4">
-                <h3 className="font-heading text-sm font-bold uppercase tracking-wider text-[#8C7A6B]">
+              {/* Progress Timeline */}
+              <div>
+                <h3 style={{ ...S.sectionTitle, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.12em', color: '#8a8880' }}>
                   Fulfillment Status
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                   {ORDER_STEPS.map((step, idx) => {
                     const isCompleted = idx <= currentStep
                     const isCurrent = idx === currentStep
                     return (
                       <div
                         key={step.id}
-                        className={`p-3 border rounded-none text-center transition-all ${
-                          isCompleted
-                            ? 'bg-[#1C1C1A] text-white border-[#1C1C1A]'
-                            : 'bg-[#F9F6F0] text-molasses/40 border-[#1C1C1A]/15'
-                        }`}
+                        style={{
+                          padding: '16px',
+                          border: isCompleted ? '1px solid #1c1b1a' : '1px solid rgba(200,193,182,0.6)',
+                          background: isCompleted ? '#1c1b1a' : '#fff',
+                          color: isCompleted ? '#fff' : '#474741',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px',
+                          borderRadius: 0,
+                          textAlign: 'center',
+                        }}
                       >
-                        <span className="text-[10px] font-mono block mb-1">Step 0{idx + 1}</span>
-                        <span className="text-xs font-sans font-bold block">{step.label}</span>
+                        <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isCompleted ? '#c9a96e' : '#8a8880' }}>
+                          Step 0{idx + 1}
+                        </span>
+                        <span style={{ fontSize: '12px', fontWeight: 600 }}>{step.label}</span>
                         {isCurrent && (
-                          <span className="inline-block mt-1 text-[9px] font-sans text-gold uppercase tracking-widest font-bold">
+                          <span style={{ fontSize: '9px', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, marginTop: '4px' }}>
                             Current Stage
                           </span>
                         )}
@@ -223,34 +273,34 @@ function TrackOrderContent(): React.JSX.Element {
                 </div>
               </div>
 
-              {/* Courier & Tracking Box */}
-              <div className="bg-[#F9F6F0] border border-[#1C1C1A]/15 p-5 space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              {/* Courier Panel */}
+              <div style={{ background: '#fdf8f7', border: '1px solid rgba(200,193,182,0.5)', padding: '20px' }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <span className="text-[9px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] block mb-1">
-                      Courier Partner
-                    </span>
-                    <p className="font-sans text-sm font-bold text-[#1C1C1A]">
+                    <span style={S.label}>Courier Partner</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#010100' }}>
                       {orderData.courier_name || 'Dispatching soon via Shiprocket'}
-                    </p>
+                    </span>
                   </div>
                   <div>
-                    <span className="text-[9px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] block mb-1">
-                      AWB / Tracking ID
-                    </span>
-                    <p className="font-mono text-sm font-bold text-gold">
+                    <span style={S.label}>AWB / Tracking ID</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#010100', fontFamily: 'monospace' }}>
                       {orderData.awb_number || 'Assigning AWB...'}
-                    </p>
+                    </span>
                   </div>
                 </div>
 
                 {orderData.tracking_url && (
-                  <div className="pt-2 border-t border-[#1C1C1A]/10">
+                  <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(200,193,182,0.3)' }}>
                     <a
                       href={orderData.tracking_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center justify-center w-full bg-[#1C1C1A] hover:bg-gold text-white hover:text-[#1C1C1A] font-sans font-bold text-xs uppercase tracking-[0.2em] py-3 rounded-none transition-all text-center"
+                      style={{
+                        display: 'block', width: '100%', background: '#1c1b1a', color: '#fff',
+                        fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+                        padding: '12px', textDecoration: 'none', textAlign: 'center', boxSizing: 'border-box',
+                      }}
                     >
                       Track Package on Courier Portal ↗
                     </a>
@@ -258,41 +308,39 @@ function TrackOrderContent(): React.JSX.Element {
                 )}
               </div>
 
-              {/* Items & Shipping Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-[#1C1C1A]/10 text-xs font-sans">
+              {/* Summary Lists */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 pt-6 border-t border-[rgba(200,193,182,0.35)]">
                 <div>
-                  <h4 className="font-bold text-[#8C7A6B] uppercase tracking-wider text-[10px] mb-2">
-                    Shipping Address
-                  </h4>
-                  <p className="font-serif leading-relaxed text-[#1C1C1A]">
-                    <strong>{orderData.customer_name}</strong><br />
+                  <h3 style={S.label}>Shipping Address</h3>
+                  <p style={{ fontSize: '13px', color: '#474741', margin: 0, lineHeight: 1.5 }}>
+                    <strong style={{ color: '#010100' }}>{orderData.customer_name}</strong><br />
                     {orderData.shipping_address?.line1}<br />
                     {orderData.shipping_address?.city}, {orderData.shipping_address?.state} — {orderData.shipping_address?.pincode}
                   </p>
                 </div>
 
                 <div>
-                  <h4 className="font-bold text-[#8C7A6B] uppercase tracking-wider text-[10px] mb-2">
-                    Items Purchased ({orderData.items?.length || 0})
-                  </h4>
-                  <div className="space-y-2">
+                  <h3 style={S.label}>Items Purchased ({orderData.items?.length || 0})</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {(orderData.items || []).map((item, idx) => (
-                      <div key={idx} className="flex justify-between border-b border-[#1C1C1A]/10 pb-1.5">
+                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#474741', borderBottom: '1px solid rgba(200,193,182,0.25)', paddingBottom: '6px' }}>
                         <span>
-                          <strong>{item.name}</strong> ({item.size || 'Standard'}) × {item.qty}
+                          <strong>{item.name}</strong> {item.size && `(${item.size})`} × {item.qty}
                         </span>
-                        <span className="font-mono">₹{((item.price || 0) * (item.qty || 1)).toLocaleString('en-IN')}</span>
+                        <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>₹{((item.price || 0) * (item.qty || 1)).toLocaleString('en-IN')}</span>
                       </div>
                     ))}
-                    <div className="flex justify-between font-bold text-sm text-[#1C1C1A] pt-1">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontWeight: 700, fontSize: '14px', color: '#010100', paddingTop: '8px' }}>
                       <span>Total Amount Paid</span>
-                      <span className="font-mono text-gold">₹{Number(orderData.total || 0).toLocaleString('en-IN')}</span>
+                      <span style={{ fontFamily: 'Playfair Display, serif', fontSize: '18px', color: '#ba1a1a' }}>₹{Number(orderData.total || 0).toLocaleString('en-IN')}</span>
                     </div>
                   </div>
                 </div>
               </div>
+
             </div>
           )}
+
         </div>
       </main>
 
@@ -303,7 +351,7 @@ function TrackOrderContent(): React.JSX.Element {
 
 export default function TrackOrderPage(): React.JSX.Element {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#F9F6F0] flex items-center justify-center font-sans text-xs uppercase tracking-widest text-[#1C1C1A]">Loading Order Tracker...</div>}>
+    <Suspense fallback={<div style={{ minHeight: '100vh', background: '#f9f4f1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Outfit, sans-serif', fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#8a8880' }}>Loading Order Tracker...</div>}>
       <TrackOrderContent />
     </Suspense>
   )

@@ -19,12 +19,12 @@ export default function Button({
   children,
   ...props
 }: ButtonProps): React.JSX.Element {
-  const baseStyle = 'inline-flex items-center justify-center font-sans font-bold text-[11px] sm:text-xs uppercase tracking-[0.2em] transition-colors duration-300 rounded-none cursor-pointer'
+  const baseStyle = 'inline-flex items-center justify-center font-sans font-bold text-xs sm:text-sm uppercase tracking-[0.2em] transition-colors duration-300 rounded-none cursor-pointer'
   
   const variants = {
-    primary: 'bg-[#2C221E] hover:bg-gold text-[#F9F6F0] py-4 px-8 sm:px-10 shadow-sm border border-transparent disabled:bg-[#2C221E]/60 disabled:cursor-not-allowed',
-    outline: 'border border-[#2D241E]/20 text-molasses hover:border-[#2D241E] py-4 px-8 sm:px-10 bg-transparent disabled:opacity-50 disabled:cursor-not-allowed',
-    text: 'gap-2.5 py-2 hover:text-gold text-molasses disabled:opacity-50 disabled:cursor-not-allowed',
+    primary: 'bg-[#2C221E] hover:bg-gold text-[#F9F6F0] py-4 sm:py-4.5 px-9 sm:px-12 shadow-sm border border-transparent disabled:bg-[#2C221E]/60 disabled:cursor-not-allowed',
+    outline: 'border border-[#2D241E]/20 text-molasses hover:border-[#2D241E] py-4 sm:py-4.5 px-9 sm:px-12 bg-transparent disabled:opacity-50 disabled:cursor-not-allowed',
+    text: 'gap-2.5 py-2.5 hover:text-gold text-molasses disabled:opacity-50 disabled:cursor-not-allowed',
   }
 
   const content = (

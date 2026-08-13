@@ -30,7 +30,6 @@ export default function EnquiriesTable({ initialEnquiries }: EnquiriesTableProps
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
 
-  // Filtered Enquiries
   const filteredEnquiries = useMemo(() => {
     return enquiries.filter((e) => {
       const matchesType = typeFilter === 'all' || e.enquiry_type === typeFilter
@@ -39,28 +38,20 @@ export default function EnquiriesTable({ initialEnquiries }: EnquiriesTableProps
     })
   }, [enquiries, typeFilter, statusFilter])
 
-  // Update Status in Supabase
   const handleUpdateStatus = async (id: string, newStatus: B2BEnquiry['status']) => {
     setUpdatingId(id)
     try {
       const supabase = createClient()
-      const { error } = await (supabase.from('b2b_enquiries') as any)
-        .update({ status: newStatus })
-        .eq('id', id)
-
+      const { error } = await (supabase.from('b2b_enquiries') as any).update({ status: newStatus }).eq('id', id)
       if (error) throw new Error(error.message)
-
-      setEnquiries((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item))
-      )
-    } catch (err) {
+      setEnquiries((prev) => prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item)))
+    } catch {
       alert('Failed to update enquiry status.')
     } finally {
       setUpdatingId(null)
     }
   }
 
-  // Copy Contact Info Action
   const handleCopyContact = (e: React.MouseEvent, enquiry: B2BEnquiry) => {
     e.stopPropagation()
     const info = `Name: ${enquiry.contact_name}\nCompany: ${enquiry.company_name || 'N/A'}\nPhone: ${enquiry.phone}\nEmail: ${enquiry.email || 'N/A'}\nCity: ${enquiry.city}`
@@ -73,191 +64,142 @@ export default function EnquiriesTable({ initialEnquiries }: EnquiriesTableProps
     setExpandedId(expandedId === id ? null : id)
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Toolbar Filters */}
-      <div className="bg-white border border-[#1C1C1A]/15 p-4 sm:p-6 rounded-none grid grid-cols-1 sm:grid-cols-2 gap-4 shadow-sm">
-        {/* Enquiry Type Filter */}
-        <div>
-          <label className="text-[9px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] block mb-1.5">
-            Filter by Enquiry Type
-          </label>
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="w-full h-10 bg-[#F9F6F0] border border-[#1C1C1A]/20 px-3 text-xs font-sans text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none cursor-pointer"
-          >
-            <option value="all">All Enquiry Types</option>
-            <option value="distributor">Distributor / Retail</option>
-            <option value="corporate_gifting">Corporate Gifting</option>
-            <option value="white_label">White Label / Private Label</option>
-            <option value="bulk_raw">Bulk Raw Jaggery</option>
-          </select>
-        </div>
+  const statusPill = (status: string) => {
+    if (status === 'new') return 'bg-[#FFF8E1] text-[#b56a00] border-[#b56a00]/20'
+    if (status === 'contacted') return 'bg-[#E8F5E9] text-[#2E7D32] border-[#2E7D32]/20'
+    return 'bg-[#e5e2e1] text-[#474741] border-[#c8c7bf]'
+  }
 
-        {/* Status Filter */}
-        <div>
-          <label className="text-[9px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] block mb-1.5">
-            Filter by Status
-          </label>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full h-10 bg-[#F9F6F0] border border-[#1C1C1A]/20 px-3 text-xs font-sans text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none cursor-pointer"
-          >
-            <option value="all">All Statuses</option>
-            <option value="new">New (Uncontacted)</option>
-            <option value="contacted">Contacted</option>
-            <option value="closed">Closed / Concluded</option>
-          </select>
-        </div>
+  return (
+    <div className="space-y-5" style={{ fontFamily: 'Outfit, sans-serif' }}>
+      {/* Toolbar Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}
+          className="border border-[#c8c7bf]/60 bg-[#fdf8f7] px-4 py-2.5 text-xs font-semibold text-[#474741] focus:outline-none focus:border-[#735c00] cursor-pointer rounded-none flex-1">
+          <option value="all">All Enquiry Types ▾</option>
+          <option value="distributor">Distributor / Retail</option>
+          <option value="corporate_gifting">Corporate Gifting</option>
+          <option value="white_label">White Label / Private Label</option>
+          <option value="bulk_raw">Bulk Raw Jaggery</option>
+        </select>
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
+          className="border border-[#c8c7bf]/60 bg-[#fdf8f7] px-4 py-2.5 text-xs font-semibold text-[#474741] focus:outline-none focus:border-[#735c00] cursor-pointer rounded-none flex-1">
+          <option value="all">All Statuses ▾</option>
+          <option value="new">New (Uncontacted)</option>
+          <option value="contacted">Contacted</option>
+          <option value="closed">Closed / Concluded</option>
+        </select>
       </div>
 
-      {/* Table & Inline Expansion View */}
-      <div className="bg-white border border-[#1C1C1A]/15 rounded-none overflow-hidden shadow-sm">
+      {/* Table */}
+      <div className="bg-white border border-[#c8c7bf]/30 rounded-none overflow-hidden shadow-sm">
         {filteredEnquiries.length === 0 ? (
-          <div className="p-8 sm:p-12 text-center text-molasses/60 space-y-2">
-            <p className="font-serif text-base sm:text-lg">No B2B enquiries match your filter criteria.</p>
-            <p className="text-xs font-sans text-molasses/40">New lead submissions from the B2B form will appear here.</p>
+          <div className="p-12 text-center text-[#474741]">
+            <p className="text-base font-medium">No B2B enquiries match your filter criteria.</p>
+            <p className="text-xs mt-1 text-[#777771]">Try adjusting your filters to see more results.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-sans min-w-[700px]">
-              <thead>
-                <tr className="border-b-2 border-[#1C1C1A] bg-[#1C1C1A] text-[#F9F6F0] text-[10px] uppercase tracking-wider">
-                  <th className="py-3.5 px-4 font-bold">Type</th>
-                  <th className="py-3.5 px-4 font-bold">Contact / Company</th>
-                  <th className="py-3.5 px-4 font-bold">Phone</th>
-                  <th className="py-3.5 px-4 font-bold">City</th>
-                  <th className="py-3.5 px-4 font-bold">Status</th>
-                  <th className="py-3.5 px-4 font-bold">Date</th>
-                  <th className="py-3.5 px-4 font-bold text-right">Actions</th>
+            <table className="w-full text-left text-sm min-w-[600px]">
+              <thead className="bg-[#f7f3f2] border-b border-[#c8c7bf]/30">
+                <tr className="text-[11px] font-bold uppercase tracking-wider text-[#474741]">
+                  <th className="py-4 px-5">Type</th>
+                  <th className="py-4 px-5">Contact</th>
+                  <th className="py-4 px-5">City</th>
+                  <th className="py-4 px-5">Status</th>
+                  <th className="py-4 px-5">Date</th>
+                  <th className="py-4 px-5 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1C1C1A]/10">
-                {filteredEnquiries.map((enquiry) => {
-                  const isExpanded = expandedId === enquiry.id
-                  return (
-                    <React.Fragment key={enquiry.id}>
-                      {/* Main Table Row */}
-                      <tr
-                        onClick={() => toggleExpand(enquiry.id)}
-                        className={`hover:bg-[#F9F6F0] cursor-pointer transition-colors ${
-                          isExpanded ? 'bg-[#F9F6F0] font-medium' : ''
-                        }`}
-                      >
-                        <td className="py-4 px-4 font-bold text-gold uppercase text-[10px] tracking-wider">
-                          {enquiry.enquiry_type.replace('_', ' ')}
-                        </td>
-                        <td className="py-4 px-4">
-                          <span className="font-bold text-[#1C1C1A] block text-sm">{enquiry.contact_name}</span>
-                          {enquiry.company_name && (
-                            <span className="text-[11px] text-molasses/60 font-serif block">{enquiry.company_name}</span>
-                          )}
-                        </td>
-                        <td className="py-4 px-4 font-mono font-bold text-[#1C1C1A]">
-                          {enquiry.phone}
-                        </td>
-                        <td className="py-4 px-4 text-[#1C1C1A]">
-                          {enquiry.city}
-                        </td>
-                        <td className="py-4 px-4" onClick={(e) => e.stopPropagation()}>
-                          <select
-                            value={enquiry.status}
-                            disabled={updatingId === enquiry.id}
-                            onChange={(e) => handleUpdateStatus(enquiry.id, e.target.value as B2BEnquiry['status'])}
-                            className={`text-[9px] font-bold uppercase tracking-wider px-2 py-1 border rounded-none cursor-pointer focus:outline-none ${
-                              enquiry.status === 'new'
-                                ? 'bg-terracotta/15 text-terracotta border-terracotta/30'
-                                : enquiry.status === 'contacted'
-                                ? 'bg-gold/15 text-[#8B5A2B] border-gold/40'
-                                : 'bg-forest/15 text-forest border-forest/30'
-                            }`}
-                          >
-                            <option value="new">New</option>
-                            <option value="contacted">Contacted</option>
-                            <option value="closed">Closed</option>
-                          </select>
-                        </td>
-                        <td className="py-4 px-4 text-molasses/60 text-[11px]">
-                          {new Date(enquiry.created_at).toLocaleDateString('en-IN', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                        </td>
-                        <td className="py-4 px-4 text-right space-x-2">
-                          <button
-                            onClick={(e) => handleCopyContact(e, enquiry)}
-                            className="bg-[#1C1C1A] hover:bg-gold text-white font-bold text-[9px] uppercase tracking-wider px-2.5 py-1.5 rounded-none transition-colors"
-                          >
-                            {copiedId === enquiry.id ? 'Copied! ✓' : 'Copy Contact'}
-                          </button>
-                          <button
-                            onClick={() => toggleExpand(enquiry.id)}
-                            className="border border-[#1C1C1A]/30 text-[#1C1C1A] font-bold text-[9px] uppercase tracking-wider px-2.5 py-1.5 rounded-none"
-                          >
-                            {isExpanded ? 'Hide ▲' : 'Details ▼'}
-                          </button>
-                        </td>
-                      </tr>
+              <tbody>
+                {filteredEnquiries.map((enquiry) => (
+                  <React.Fragment key={enquiry.id}>
+                    <tr
+                      className="border-t border-[#c8c7bf]/15 hover:bg-[#f7f3f2]/60 transition-colors cursor-pointer"
+                      onClick={() => toggleExpand(enquiry.id)}
+                    >
+                      <td className="py-5 px-5">
+                        <span className="text-[11px] border border-[#c8c7bf]/60 px-2.5 py-1 rounded-none text-[#474741] font-semibold capitalize">
+                          {enquiry.enquiry_type?.replace(/_/g, ' ') || 'General'}
+                        </span>
+                      </td>
+                      <td className="py-5 px-5">
+                        <span className="font-semibold text-[#010100] block">{enquiry.contact_name}</span>
+                        {enquiry.company_name && <span className="text-xs text-[#474741]">{enquiry.company_name}</span>}
+                        <span className="text-xs font-mono text-[#474741] block mt-0.5">{enquiry.phone}</span>
+                      </td>
+                      <td className="py-5 px-5 text-[#474741] capitalize">{enquiry.city}</td>
+                      <td className="py-5 px-5">
+                        <select
+                          value={enquiry.status}
+                          onChange={(e) => { e.stopPropagation(); handleUpdateStatus(enquiry.id, e.target.value as B2BEnquiry['status']) }}
+                          onClick={(e) => e.stopPropagation()}
+                          disabled={updatingId === enquiry.id}
+                          className={`text-[11px] font-semibold px-2.5 py-1 rounded-none border cursor-pointer focus:outline-none ${statusPill(enquiry.status)}`}
+                        >
+                          <option value="new">New</option>
+                          <option value="contacted">Contacted</option>
+                          <option value="closed">Closed</option>
+                        </select>
+                      </td>
+                      <td className="py-5 px-5 text-xs text-[#474741] whitespace-nowrap">
+                        {new Date(enquiry.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </td>
+                      <td className="py-5 px-5 text-right">
+                        <svg className={`inline-block text-[#474741] transition-transform duration-200 ${expandedId === enquiry.id ? 'rotate-180' : ''}`}
+                          width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="m6 9 6 6 6-6"/>
+                        </svg>
+                      </td>
+                    </tr>
 
-                      {/* Inline Expanded Detail Drawer */}
-                      {isExpanded && (
-                        <tr className="bg-[#F9F6F0] border-b border-[#1C1C1A]/20">
-                          <td colSpan={7} className="p-4 sm:p-6 space-y-4">
-                            <div className="bg-white border border-[#1C1C1A]/15 p-4 rounded-none space-y-3 shadow-sm">
-                              <h4 className="font-bold text-xs uppercase tracking-wider text-gold border-b border-[#1C1C1A]/10 pb-2">
-                                Full Message & Order Requirement
-                              </h4>
-
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-sans">
-                                <div>
-                                  <span className="text-molasses/50 uppercase text-[9px] font-bold block">Email Address</span>
-                                  <span className="font-mono text-[#1C1C1A]">{enquiry.email || 'Not provided'}</span>
-                                </div>
-                                <div>
-                                  <span className="text-molasses/50 uppercase text-[9px] font-bold block">Est. Quantity / Volume</span>
-                                  <span className="font-bold text-[#1C1C1A]">{enquiry.estimated_quantity || enquiry.estimated_monthly_qty || 'N/A'}</span>
-                                </div>
-                                <div>
-                                  <span className="text-molasses/50 uppercase text-[9px] font-bold block">Submitted Date</span>
-                                  <span className="font-mono text-[#1C1C1A]">
-                                    {new Date(enquiry.created_at).toLocaleString('en-IN')}
-                                  </span>
-                                </div>
+                    {expandedId === enquiry.id && (
+                      <tr>
+                        <td colSpan={6} className="p-0">
+                          <div className="bg-[#f7f3f2] border-l-4 border-[#010100] px-8 py-6">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#474741] mb-4">Full Message & Order Requirement</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-4">
+                              <div>
+                                <p className="text-[10px] font-bold uppercase text-[#474741] mb-1">Email Address</p>
+                                <p className="text-sm text-[#010100]">{enquiry.email || '—'}</p>
                               </div>
-
-                              <div className="pt-2 border-t border-[#1C1C1A]/10">
-                                <span className="text-molasses/50 uppercase text-[9px] font-bold block mb-1">Detailed Inquiry Message</span>
-                                <p className="font-serif italic text-sm text-[#1C1C1A] bg-[#F9F6F0] p-3 border border-[#1C1C1A]/10 leading-relaxed whitespace-pre-wrap">
-                                  "{enquiry.message}"
-                                </p>
+                              <div>
+                                <p className="text-[10px] font-bold uppercase text-[#474741] mb-1">Est. Quantity / Volume</p>
+                                <p className="text-sm font-bold text-[#010100]">{enquiry.estimated_quantity || enquiry.estimated_monthly_qty || '—'}</p>
                               </div>
-
-                              <div className="pt-2 flex flex-wrap justify-end gap-2 text-xs">
-                                <a
-                                  href={`tel:${enquiry.phone}`}
-                                  className="bg-forest text-white font-bold px-3 py-1.5 text-[10px] uppercase tracking-wider rounded-none inline-flex items-center space-x-1"
-                                >
-                                  <span>📞 Call {enquiry.phone}</span>
-                                </a>
-                                {enquiry.email && (
-                                  <a
-                                    href={`mailto:${enquiry.email}`}
-                                    className="bg-[#1C1C1A] text-white font-bold px-3 py-1.5 text-[10px] uppercase tracking-wider rounded-none inline-flex items-center space-x-1"
-                                  >
-                                    <span>✉️ Email Contact</span>
-                                  </a>
-                                )}
+                              <div>
+                                <p className="text-[10px] font-bold uppercase text-[#474741] mb-1">Submitted Date</p>
+                                <p className="text-sm text-[#010100]">{new Date(enquiry.created_at).toLocaleString('en-IN')}</p>
                               </div>
                             </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  )
-                })}
+                            <div className="mb-5">
+                              <p className="text-[10px] font-bold uppercase text-[#474741] mb-2">Detailed Inquiry Message</p>
+                              <p className="text-sm italic text-[#474741] bg-white border border-[#c8c7bf]/40 p-4 rounded-none">
+                                &ldquo;{enquiry.message}&rdquo;
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <button onClick={(e) => handleCopyContact(e, enquiry)}
+                                className="text-[11px] font-bold uppercase tracking-wider text-[#474741] border border-[#c8c7bf]/60 px-4 py-2 rounded-none hover:border-[#1c1c1a] transition-colors">
+                                {copiedId === enquiry.id ? 'Copied! ✓' : 'Copy Contact'}
+                              </button>
+                              <a href={`tel:${enquiry.phone}`}
+                                className="inline-flex items-center gap-2 bg-[#2E7D32] text-white text-[11px] font-bold uppercase tracking-wider px-4 py-2 rounded-none hover:bg-[#1B5E20] transition-colors">
+                                📞 Call {enquiry.phone}
+                              </a>
+                              {enquiry.email && (
+                                <a href={`mailto:${enquiry.email}`}
+                                  className="inline-flex items-center gap-2 bg-[#1c1c1a] text-white text-[11px] font-bold uppercase tracking-wider px-4 py-2 rounded-none hover:bg-[#735c00] transition-colors">
+                                  ✉ Email Contact
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
               </tbody>
             </table>
           </div>

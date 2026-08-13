@@ -1,9 +1,16 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { sendOrderConfirmation } from '@/lib/email/sendOrderConfirmation'
+import { createServerSupabaseClient } from '@/lib/supabase/server'
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
+    const supabaseAuth = await createServerSupabaseClient()
+    const { data: { user } } = await supabaseAuth.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { order_id } = await request.json()
 
     if (!order_id) {

@@ -43,6 +43,26 @@ interface FullOrderDetails {
   created_at: string
 }
 
+const S = {
+  sectionTitle: {
+    fontFamily: 'Playfair Display, serif',
+    fontSize: '22px',
+    fontWeight: 500,
+    color: '#010100',
+    marginBottom: '20px',
+  },
+  label: {
+    display: 'block',
+    fontSize: '10px',
+    fontWeight: 700,
+    letterSpacing: '0.12em',
+    textTransform: 'uppercase' as const,
+    color: '#8a8880',
+    fontFamily: 'Outfit, sans-serif',
+    marginBottom: '6px',
+  }
+}
+
 export default function OrderConfirmedPage({ params }: OrderConfirmedPageProps) {
   const resolvedParams = use(params)
   const orderNumber = resolvedParams.orderNumber
@@ -100,106 +120,87 @@ export default function OrderConfirmedPage({ params }: OrderConfirmedPageProps) 
   ]
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F9F6F0] text-[#1C1C1A]">
+    <div style={{ background: '#f9f4f1', minHeight: '100vh', fontFamily: 'Outfit, sans-serif' }}>
       <Header />
 
-      <main className="main-page-padding flex-1 w-full pb-20 pt-8">
-        <div className="container-main max-w-3xl mx-auto space-y-8">
-
-          {/* ── 1. Success Icon & Main Message Banner ── */}
-          <div className="text-center flex flex-col items-center justify-center space-y-4 pt-4 w-full">
-            <div className="flex justify-center w-full">
-              <div className={`w-16 h-16 rounded-full border-2 flex items-center justify-center ${
-                isPaid
-                  ? 'border-[#4A5D23] bg-[#4A5D23]/10 text-[#4A5D23]'
-                  : 'border-[#8B5A2B] bg-[#8B5A2B]/10 text-[#8B5A2B]'
-              }`}>
+      <main className="px-4 sm:px-12 py-12 sm:py-16 w-full max-w-3xl" style={{ boxSizing: 'border-box', margin: '0 auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          
+          {/* Header check icon / verification badge */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '48px', height: '48px', border: '1px solid #1c1b1a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 {isPaid ? (
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1c1b1a" strokeWidth="2.5">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 ) : (
-                  <span className="text-2xl">📦</span>
+                  <span style={{ fontSize: '18px' }}>📦</span>
                 )}
               </div>
-            </div>
-
-            <div className="text-center w-full">
-              <span className={`inline-block px-3 py-1 font-sans font-bold text-[10px] uppercase tracking-[0.2em] mb-3 ${
-                isPaid
-                  ? 'bg-[#4A5D23]/15 text-[#4A5D23] border border-[#4A5D23]/30'
-                  : 'bg-[#8B5A2B]/15 text-[#8B5A2B] border border-[#8B5A2B]/30'
-              }`}>
-                {isPaid ? 'Payment Verified ✓' : 'Order Placed (Payment Pending COD)'}
+              <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#474741', background: '#f5f0ef', padding: '8px 16px', border: '1px solid rgba(200,193,182,0.6)' }}>
+                {isPaid ? 'Payment Verified ✓' : 'Order Placed (COD)'}
               </span>
-
-              <h1 className="font-heading text-3xl sm:text-4xl font-bold text-[#1C1C1A] leading-tight text-center block w-full">
-                {isPaid ? 'Thank You For Your Order!' : 'Order Request Received!'}
-              </h1>
             </div>
 
-            <p className="font-sans text-sm text-[#1C1C1A]/70 max-w-lg mx-auto text-center leading-relaxed block w-full">
+            <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '38px', fontWeight: 500, color: '#010100', margin: '8px 0 0' }}>
+              {isPaid ? 'Thank You For Your Order!' : 'Order Request Received!'}
+            </h1>
+
+            <p style={{ fontSize: '14px', color: '#8a8880', maxWidth: '520px', margin: 0, lineHeight: 1.6 }}>
               {isPaid
                 ? 'Your payment was successfully verified. Your authentic Kolhapuri jaggery is being freshly prepared for dispatch.'
                 : 'Your order request has been logged. Our team will verify your items and collect payment via COD or UPI upon delivery.'}
             </p>
           </div>
 
-          {/* ── 2. Order Reference Summary Box ── */}
-          <div className="bg-white border border-[#1C1C1A]/15 p-6 sm:p-8 rounded-none shadow-sm space-y-6">
-            
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1C1C1A]/10 pb-4 gap-3">
+          {/* Reference Info Box */}
+          <div style={{ border: '1px solid rgba(200,193,182,0.5)', background: '#fff', padding: '32px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid rgba(200,193,182,0.35)', paddingBottom: '20px', marginBottom: '24px' }}>
               <div>
-                <span className="text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8B5A2B] block mb-1">
-                  Order Reference Number
-                </span>
-                <span className="font-mono text-2xl sm:text-3xl font-bold text-[#1C1C1A] tracking-wider block">
+                <span style={S.label}>Order Reference Number</span>
+                <span style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 700, color: '#010100', letterSpacing: '0.04em' }}>
                   {orderNumber}
                 </span>
               </div>
-              <div className="text-left sm:text-right">
-                <span className="text-xs font-sans text-[#1C1C1A]/60 block">
+              <div style={{ textAlign: 'right' }}>
+                <span style={{ fontSize: '12px', color: '#8a8880', display: 'block' }}>
                   Placed: {order ? new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-IN')}
                 </span>
-                <span className={`inline-block mt-1.5 px-3 py-0.5 border text-[10px] font-sans font-bold uppercase tracking-wider ${
-                  isPaid
-                    ? 'bg-[#4A5D23]/10 text-[#4A5D23] border-[#4A5D23]/30'
-                    : 'bg-[#8B5A2B]/10 text-[#8B5A2B] border-[#8B5A2B]/30'
-                }`}>
+                <span style={{ display: 'inline-block', marginTop: '6px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isPaid ? '#2E7D32' : '#b56a00', background: isPaid ? '#E8F5E9' : '#FFF8E1', padding: '4px 12px', border: '1px solid currentColor', borderOpacity: 0.2 } as any}>
                   {loading ? 'Loading...' : isPaid ? 'Paid Online ✓' : 'Pending (COD)'}
                 </span>
               </div>
             </div>
 
-            {/* Courier Dispatch Partner & AWB Block */}
-            <div className="bg-[#F9F6F0] border border-[#1C1C1A]/15 p-5 space-y-4">
+            {/* Courier status block */}
+            <div style={{ background: '#fdf8f7', border: '1px solid rgba(200,193,182,0.5)', padding: '20px', marginBottom: '28px' }}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <span className="text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8B5A2B] block mb-1">
-                    Courier Dispatch Partner
-                  </span>
-                  <span className="font-sans text-sm font-bold text-[#1C1C1A] block">
+                  <span style={S.label}>Courier Dispatch Partner</span>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#010100' }}>
                     {order?.courier_name || 'Shiprocket (Assigning Courier...)'}
                   </span>
                 </div>
-
                 <div>
-                  <span className="text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8B5A2B] block mb-1">
-                    AWB Tracking Number
-                  </span>
-                  <span className="font-mono text-sm font-bold text-[#8B5A2B] block">
+                  <span style={S.label}>AWB Tracking Number</span>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#010100', fontFamily: 'monospace' }}>
                     {order?.awb_number || 'Assigning AWB...'}
                   </span>
                 </div>
               </div>
 
               {order?.tracking_url && (
-                <div className="pt-3 border-t border-[#1C1C1A]/10">
+                <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(200,193,182,0.3)' }}>
                   <a
                     href={order.tracking_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center justify-center w-full bg-[#1C1C1A] hover:bg-[#8B5A2B] text-white font-sans font-bold text-xs uppercase tracking-[0.2em] py-3.5 transition-all text-center rounded-none shadow-sm"
+                    style={{
+                      display: 'block', width: '100%', background: '#1c1b1a', color: '#fff',
+                      fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+                      padding: '12px', textDecoration: 'none', textAlign: 'center', boxSizing: 'border-box',
+                    }}
                   >
                     Track Package Live on Courier Portal ↗
                   </a>
@@ -207,29 +208,33 @@ export default function OrderConfirmedPage({ params }: OrderConfirmedPageProps) 
               )}
             </div>
 
-            {/* ── 3. Fulfillment Pipeline ── */}
-            <div className="space-y-4 pt-2">
-              <h2 className="font-sans text-xs font-bold uppercase tracking-[0.2em] text-[#8B5A2B] block">
+            {/* Timeline */}
+            <div style={{ marginBottom: '32px' }}>
+              <h2 style={{ ...S.sectionTitle, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.12em', color: '#8a8880' }}>
                 Fulfillment Timeline
               </h2>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                 {steps.map((st) => (
                   <div
                     key={st.num}
-                    className={`p-4 border rounded-none text-left space-y-1 transition-all ${
-                      st.completed
-                        ? 'bg-[#1C1C1A] text-white border-[#1C1C1A]'
-                        : 'bg-[#F9F6F0] text-[#1C1C1A]/60 border-[#1C1C1A]/15'
-                    }`}
+                    style={{
+                      padding: '16px',
+                      border: st.completed ? '1px solid #1c1b1a' : '1px solid rgba(200,193,182,0.6)',
+                      background: st.completed ? '#1c1b1a' : '#fff',
+                      color: st.completed ? '#fff' : '#474741',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
+                      borderRadius: 0,
+                    }}
                   >
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider block text-[#8B5A2B]">
+                    <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: st.completed ? '#c9a96e' : '#8a8880' }}>
                       Step {st.num}
                     </span>
-                    <span className="text-xs font-sans font-bold block text-[#1C1C1A] leading-snug">
+                    <span style={{ fontSize: '12px', fontWeight: 600, leadingHeight: 1.3 } as any}>
                       {st.title}
                     </span>
-                    <span className="text-[11px] font-serif block opacity-75 leading-relaxed">
+                    <span style={{ fontSize: '11px', opacity: 0.8, leadingHeight: 1.4 } as any}>
                       {st.desc}
                     </span>
                   </div>
@@ -237,82 +242,79 @@ export default function OrderConfirmedPage({ params }: OrderConfirmedPageProps) 
               </div>
             </div>
 
-            {/* ── 4. Itemized Order Receipt & Delivery Address ── */}
+            {/* Itemized list / Address grid */}
             {order && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-[#1C1C1A]/10 text-xs font-sans">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 pt-6 border-t border-[rgba(200,193,182,0.35)]">
                 <div>
-                  <h3 className="font-sans font-bold text-[#8B5A2B] uppercase tracking-[0.15em] text-[10px] mb-2 block">
-                    Shipping Address
-                  </h3>
-                  <p className="font-serif leading-relaxed text-[#1C1C1A] text-xs">
-                    <strong>{order.customer_name}</strong><br />
+                  <h3 style={S.label}>Shipping Address</h3>
+                  <p style={{ fontSize: '13px', color: '#474741', margin: 0, lineHeight: 1.5 }}>
+                    <strong style={{ color: '#010100' }}>{order.customer_name}</strong><br />
                     {order.shipping_address?.line1}<br />
                     {order.shipping_address?.city}, {order.shipping_address?.state} — {order.shipping_address?.pincode}<br />
-                    <span className="font-mono text-[#1C1C1A]/70">📞 {order.customer_phone}</span>
+                    <span style={{ display: 'block', marginTop: '6px', fontFamily: 'monospace', color: '#8a8880' }}>📞 {order.customer_phone}</span>
                   </p>
                 </div>
-
                 <div>
-                  <h3 className="font-sans font-bold text-[#8B5A2B] uppercase tracking-[0.15em] text-[10px] mb-2 block">
-                    Items Purchased ({order.items?.length || 0})
-                  </h3>
-                  <div className="space-y-2">
+                  <h3 style={S.label}>Items Purchased ({order.items?.length || 0})</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {(order.items || []).map((item, idx) => (
-                      <div key={idx} className="flex justify-between border-b border-[#1C1C1A]/10 pb-2 text-xs">
+                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#474741', borderBottom: '1px solid rgba(200,193,182,0.25)', paddingBottom: '6px' }}>
                         <span>
-                          <strong>{item.name}</strong> ({item.size || 'Standard'}) × {item.qty}
+                          <strong>{item.name}</strong> {item.size && `(${item.size})`} × {item.qty}
                         </span>
-                        <span className="font-mono">₹{((item.price || 0) * (item.qty || 1)).toLocaleString('en-IN')}</span>
+                        <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>₹{((item.price || 0) * (item.qty || 1)).toLocaleString('en-IN')}</span>
                       </div>
                     ))}
-                    <div className="flex justify-between font-bold text-sm text-[#1C1C1A] pt-2 border-t border-[#1C1C1A]/15">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontWeight: 700, fontSize: '14px', color: '#010100', paddingTop: '8px' }}>
                       <span>Total Amount</span>
-                      <span className="font-mono text-[#8B5A2B]">₹{Number(order.total || 0).toLocaleString('en-IN')}</span>
+                      <span style={{ fontFamily: 'Playfair Display, serif', fontSize: '18px', color: '#ba1a1a' }}>₹{Number(order.total || 0).toLocaleString('en-IN')}</span>
                     </div>
                   </div>
                 </div>
               </div>
             )}
-
           </div>
 
-          {/* ── 5. Action Buttons (Track Portal, Shop, Home) ── */}
-          <div className="space-y-4 text-center">
+          {/* Action buttons columns */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'center' }}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Link
                 href={`/track-order?order=${orderNumber}`}
-                className="w-full bg-[#1C1C1A] hover:bg-[#8B5A2B] text-white font-sans font-bold text-xs uppercase tracking-[0.2em] py-4 rounded-none transition-all text-center shadow-sm flex items-center justify-center space-x-2"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  background: '#1c1b1a', color: '#fff', fontSize: '11px', fontWeight: 700,
+                  letterSpacing: '0.12em', textTransform: 'uppercase', padding: '16px',
+                  textDecoration: 'none', borderRadius: 0,
+                }}
               >
-                <span>📦</span>
-                <span>Open Order Tracking Portal</span>
+                📦 Open Order Tracking Portal
               </Link>
-
               <Link
                 href="/shop"
-                className="w-full border border-[#1C1C1A] hover:bg-[#1C1C1A] text-[#1C1C1A] hover:text-white font-sans font-bold text-xs uppercase tracking-[0.2em] py-4 rounded-none transition-all text-center shadow-sm"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  border: '1.5px solid #1c1b1a', background: 'transparent', color: '#1c1b1a', fontSize: '11px', fontWeight: 700,
+                  letterSpacing: '0.12em', textTransform: 'uppercase', padding: '16px',
+                  textDecoration: 'none', borderRadius: 0,
+                }}
               >
                 Continue Shopping 🛍️
               </Link>
             </div>
-
-            <div className="pt-2">
-              <Link
-                href="/"
-                className="text-[11px] font-sans text-[#1C1C1A]/60 hover:text-[#8B5A2B] uppercase tracking-wider font-bold"
-              >
-                ← Return to Homepage
-              </Link>
-            </div>
+            
+            <Link href="/" style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#8a8880', textDecoration: 'none', marginTop: '12px' }}>
+              ← Return to Homepage
+            </Link>
           </div>
 
-          {/* ── 6. WhatsApp Support Footer ── */}
-          <p className="text-center text-xs font-sans text-[#1C1C1A]/60 pt-2">
+          {/* WhatsApp Support text */}
+          <p style={{ textAlign: 'center', fontSize: '12px', color: '#8a8880', margin: 0 }}>
             Have questions about your order?{' '}
             <a
               href={`https://wa.me/919876543210?text=Hi%20GudSampada,%20I%20have%20a%20question%20regarding%20Order%20%23${orderNumber}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-bold text-[#1C1C1A] underline hover:text-[#8B5A2B]"
+              style={{ fontWeight: 700, color: '#1c1b1a', textDecoration: 'underline', textUnderlineOffset: '3px' }}
             >
               Chat with Us on WhatsApp 💬
             </a>

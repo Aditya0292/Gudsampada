@@ -25,7 +25,7 @@ export default function StoryAct5Products() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="w-full relative aspect-[16/9] md:aspect-[21/9] rounded-none overflow-hidden border border-molasses/15 mb-8 bg-[#F7F4EE] shadow-md"
+          className="w-full relative aspect-[16/9] md:aspect-[21/9] rounded-none overflow-hidden border border-molasses/15 mb-16 bg-[#F7F4EE] shadow-md"
         >
           <video
             autoPlay
@@ -41,10 +41,24 @@ export default function StoryAct5Products() {
         </motion.div>
 
         {/* Shop CTA Link */}
-        <div className="text-center">
+        <div className="text-center" style={{ marginTop: '32px' }}>
           <Link
             href="/shop"
-            className="inline-block text-xs font-sans font-bold uppercase tracking-[0.2em] text-molasses hover:text-gold transition-colors underline underline-offset-8"
+            style={{
+              display: 'inline-block',
+              background: 'transparent',
+              border: '1.5px solid #1c1b1a',
+              color: '#1c1b1a',
+              padding: '16px 32px',
+              fontSize: '13px',
+              fontWeight: 700,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              fontFamily: 'Outfit, sans-serif'
+            }}
+            className="hover:bg-[#1c1b1a] hover:text-white"
           >
             View Full Product Collection →
           </Link>

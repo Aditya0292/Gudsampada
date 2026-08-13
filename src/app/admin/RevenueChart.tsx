@@ -1,17 +1,7 @@
 'use client'
 
 import React from 'react'
-import {
-  ResponsiveContainer,
-  ComposedChart,
-  Bar,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from 'recharts'
-
+import { ResponsiveContainer, ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 export interface DailyChartData {
@@ -27,114 +17,128 @@ interface RevenueChartProps {
 export default function RevenueChart({ data }: RevenueChartProps): React.JSX.Element {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const currentRange = searchParams.get('range') || '30d'
+  const currentRange = searchParams.get('range') || (searchParams.get('month') ? 'month' : '30d')
+  const currentMonthValue = searchParams.get('month') || ''
 
   const handleRangeChange = (range: string) => {
     router.push(`?range=${range}`, { scroll: false })
   }
 
-  const getTitle = () => {
-    if (currentRange === '7d') return '7-Day Revenue & Orders Trend'
-    if (currentRange === '12m') return '12-Month Revenue & Orders Trend'
-    return '30-Day Revenue & Orders Trend'
+  const handleMonthChange = (monthValue: string) => {
+    if (monthValue) {
+      router.push(`?range=month&month=${monthValue}`, { scroll: false })
+    } else {
+      router.push(`?range=30d`, { scroll: false })
+    }
   }
 
+  const ranges = [
+    { key: '7d', label: '7 Days' },
+    { key: '30d', label: '30 Days' },
+    { key: '12m', label: '12 Months' },
+  ]
+
+  const isMonthActive = currentRange === 'month'
+
   return (
-    <div className="w-full bg-white border border-[#1C1C1A]/15 p-4 sm:p-6 lg:p-8 rounded-none shadow-sm space-y-4 sm:space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#1C1C1A]/15 pb-4 gap-4">
-        <div>
-          <span className="text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] block mb-1">
-            {getTitle()}
-          </span>
-          <h3 className="font-heading text-xl sm:text-2xl font-bold text-[#1C1C1A]">Performance Chart</h3>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-          {/* Filters */}
-          <div className="flex items-center gap-1.5 bg-[#F9F6F0] border border-[#1C1C1A]/20 p-1.5 rounded-sm">
-            <button
-              onClick={() => handleRangeChange('7d')}
-              className={`px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] transition-all rounded-sm ${
-                currentRange === '7d' ? 'bg-[#1C1C1A] text-white shadow-sm' : 'text-molasses/60 hover:text-[#1C1C1A] hover:bg-black/5'
-              }`}
-            >
-              7 Days
-            </button>
-            <button
-              onClick={() => handleRangeChange('30d')}
-              className={`px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] transition-all rounded-sm ${
-                currentRange === '30d' ? 'bg-[#1C1C1A] text-white shadow-sm' : 'text-molasses/60 hover:text-[#1C1C1A] hover:bg-black/5'
-              }`}
-            >
-              30 Days
-            </button>
-            <button
-              onClick={() => handleRangeChange('12m')}
-              className={`px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] transition-all rounded-sm ${
-                currentRange === '12m' ? 'bg-[#1C1C1A] text-white shadow-sm' : 'text-molasses/60 hover:text-[#1C1C1A] hover:bg-black/5'
-              }`}
-            >
-              12 Months
-            </button>
+    <div style={{ border: '1px solid rgba(200,193,182,0.5)', background: '#fff', padding: '32px 36px' }}>
+      {/* Header row */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
+        <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', fontWeight: 500, color: '#010100', margin: 0 }}>
+          Revenue &amp; Orders Trend
+        </h3>
+
+        {/* Range switcher & Month Picker */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
+            {ranges.map((r, i) => (
+              <button
+                key={r.key}
+                onClick={() => handleRangeChange(r.key)}
+                style={{
+                  padding: '6px 18px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  letterSpacing: '0.06em',
+                  fontFamily: 'Outfit, sans-serif',
+                  textTransform: 'uppercase',
+                  background: currentRange === r.key ? '#1c1b1a' : 'transparent',
+                  color: currentRange === r.key ? '#fff' : '#8a8880',
+                  border: '1px solid rgba(200,193,182,0.6)',
+                  borderRight: i < ranges.length - 1 ? 'none' : '1px solid rgba(200,193,182,0.6)',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {r.label}
+              </button>
+            ))}
           </div>
 
-          {/* Legend */}
-          <div className="flex items-center gap-4 text-xs font-sans">
-            <span className="flex items-center gap-2">
-              <span className="w-3 h-3 bg-[#8C7A6B] inline-block" />
-              <span className="text-[#1C1C1A] font-medium">Revenue (₹)</span>
-            </span>
-            <span className="flex items-center gap-2">
-              <span className="w-3.5 h-1 bg-[#1C1C1A] inline-block" />
-              <span className="text-[#1C1C1A] font-medium">Orders</span>
-            </span>
+          {/* Custom Month Picker */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: '#8a8880', fontFamily: 'Outfit, sans-serif', textTransform: 'uppercase', letterSpacing: '0.04em' }}>or select month:</span>
+            <input
+              type="month"
+              value={currentMonthValue}
+              onChange={(e) => handleMonthChange(e.target.value)}
+              style={{
+                padding: '5px 12px',
+                fontSize: '11px',
+                fontWeight: 600,
+                fontFamily: 'Outfit, sans-serif',
+                background: isMonthActive ? 'rgba(201,169,110,0.08)' : 'transparent',
+                color: '#010100',
+                border: isMonthActive ? '1.5px solid #1c1b1a' : '1px solid rgba(200,193,182,0.6)',
+                cursor: 'pointer',
+                outline: 'none',
+                height: '29.5px',
+                boxSizing: 'border-box',
+                borderRadius: 0,
+              }}
+            />
           </div>
         </div>
       </div>
 
-      <div className="w-full h-[220px] sm:h-[280px] md:h-[340px]">
+      {/* Chart */}
+      <div style={{ width: '100%', height: '280px' }}>
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 10, right: 0, left: -15, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1C1C1A" strokeOpacity={0.06} vertical={false} />
-            <XAxis
-              dataKey="date"
-              tick={{ fontSize: 9, fill: '#1C1C1A', opacity: 0.7 }}
-              axisLine={{ stroke: '#1C1C1A', strokeOpacity: 0.15 }}
-              tickLine={false}
-              interval="preserveStartEnd"
-              minTickGap={15}
-            />
-            <YAxis
-              yAxisId="left"
-              tick={{ fontSize: 9, fill: '#1C1C1A', opacity: 0.7 }}
-              axisLine={{ stroke: '#1C1C1A', strokeOpacity: 0.15 }}
-              tickLine={false}
-            />
-            <YAxis
-              yAxisId="right"
-              orientation="right"
-              tick={{ fontSize: 9, fill: '#1C1C1A', opacity: 0.7 }}
-              axisLine={{ stroke: '#1C1C1A', strokeOpacity: 0.15 }}
-              tickLine={false}
-            />
+          <ComposedChart data={data} margin={{ top: 4, right: 0, left: -20, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1C1C1A" strokeOpacity={0.05} vertical={false} />
+            <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#8a8880' }} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={20} />
+            <YAxis yAxisId="left" tick={{ fontSize: 10, fill: '#8a8880' }} axisLine={false} tickLine={false} />
+            <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: '#8a8880' }} axisLine={false} tickLine={false} />
             <Tooltip
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
                   return (
-                    <div className="bg-[#1C1C1A] text-[#F9F6F0] p-3 text-xs font-sans shadow-lg border border-gold/40 rounded-none space-y-1">
-                      <p className="font-bold text-gold border-b border-white/10 pb-1 mb-1">{label}</p>
-                      <p>Revenue: <span className="font-mono font-bold">₹{Number(payload[0]?.value || 0).toLocaleString('en-IN')}</span></p>
-                      <p>Orders: <span className="font-mono font-bold">{payload[1]?.value || 0}</span></p>
+                    <div style={{ background: '#1c1b1a', color: '#f5f0ef', padding: '10px 14px', fontSize: '12px', fontFamily: 'Outfit, sans-serif' }}>
+                      <p style={{ fontWeight: 700, marginBottom: '4px', color: '#c9a96e' }}>{label}</p>
+                      <p>Revenue: <strong>₹{Number(payload[0]?.value || 0).toLocaleString('en-IN')}</strong></p>
+                      <p>Orders: <strong>{payload[1]?.value || 0}</strong></p>
                     </div>
                   )
                 }
                 return null
               }}
             />
-            <Bar yAxisId="left" dataKey="revenue" fill="#8C7A6B" radius={[0, 0, 0, 0]} maxBarSize={28} />
-            <Line yAxisId="right" type="monotone" dataKey="orders" stroke="#1C1C1A" strokeWidth={2.5} dot={false} />
+            <Bar yAxisId="left" dataKey="revenue" fill="#c9a96e" fillOpacity={0.7} maxBarSize={24} />
+            <Line yAxisId="right" type="monotone" dataKey="orders" stroke="#1c1b1a" strokeWidth={2} dot={false} />
           </ComposedChart>
         </ResponsiveContainer>
+      </div>
+
+      {/* Legend */}
+      <div style={{ display: 'flex', gap: '24px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(200,193,182,0.3)' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: '#8a8880', fontFamily: 'Outfit, sans-serif' }}>
+          <span style={{ width: '12px', height: '12px', background: '#c9a96e', opacity: 0.7, display: 'inline-block' }} />
+          Revenue (₹)
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: '#8a8880', fontFamily: 'Outfit, sans-serif' }}>
+          <span style={{ width: '16px', height: '2px', background: '#1c1b1a', display: 'inline-block' }} />
+          Orders
+        </span>
       </div>
     </div>
   )

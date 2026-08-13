@@ -8,31 +8,26 @@ import ProductShowcase from '@/components/home/ProductShowcase'
 import WhySection from '@/components/home/WhySection'
 import TestimonialSection from '@/components/home/TestimonialSection'
 import StoryTeaser from '@/components/home/StoryTeaser'
-import GallerySlider from '@/components/home/GallerySlider'
 import CertificationsStrip from '@/components/home/CertificationsStrip'
 import NewsletterCTA from '@/components/home/NewsletterCTA'
 import CartDrawer from '@/components/shop/CartDrawer'
 
 import WomenEmpowermentSection from '@/components/story/WomenEmpowermentSection'
-import QuickTrackSection from '@/components/home/QuickTrackSection'
 
 export default function HomePage() {
   return (
     <>
       <Header />
       <CartDrawer />
-      <main>
+      <main className="overflow-x-hidden">
         <HeroSection />
         <LogoMarquee />
         <ProductShowcase />
         <CertificationsStrip />
         <WhySection />
-        <TestimonialSection />
         <StoryTeaser />
         <WomenEmpowermentSection />
-        <GallerySlider />
-        <QuickTrackSection />
-        <NewsletterCTA />
+        <TestimonialSection />
       </main>
       <Footer />
     </>

@@ -4,7 +4,6 @@ import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { uploadProductImage } from '@/lib/supabase/storage'
 import { productSchema, ProductFormValues } from '@/lib/validation/productSchema'
 import { AdminProduct } from './ProductsTable'
@@ -23,24 +22,129 @@ function generateSlug(text: string): string {
     .replace(/-+/g, '-')
 }
 
+const S = {
+  label: {
+    display: 'block',
+    fontSize: '10px',
+    fontWeight: 700,
+    letterSpacing: '0.12em',
+    textTransform: 'uppercase' as const,
+    color: '#8a8880',
+    fontFamily: 'Outfit, sans-serif',
+    marginBottom: '8px',
+  },
+  input: {
+    width: '100%',
+    border: 'none',
+    borderBottom: '1px solid rgba(200,193,182,0.8)',
+    background: 'transparent',
+    padding: '10px 0',
+    fontSize: '14px',
+    color: '#010100',
+    outline: 'none',
+    fontFamily: 'Outfit, sans-serif',
+    borderRadius: 0,
+  },
+  sectionTitle: {
+    fontFamily: 'Playfair Display, serif',
+    fontSize: '22px',
+    fontWeight: 500,
+    color: '#010100',
+    marginBottom: '32px',
+  }
+}
+
 export default function ProductForm({ initialProduct, isEdit = false }: ProductFormProps): React.JSX.Element {
   const router = useRouter()
   const [name, setName] = useState(initialProduct?.name || '')
   const [slug, setSlug] = useState(initialProduct?.slug || '')
   const [description, setDescription] = useState(initialProduct?.description || '')
   const [price250g, setPrice250g] = useState<number>(initialProduct?.price_250g || 149)
+  const [originalPrice250g, setOriginalPrice250g] = useState<number | ''>(initialProduct?.original_price_250g || '')
   const [price500g, setPrice500g] = useState<number>(initialProduct?.price_500g || 279)
+  const [originalPrice500g, setOriginalPrice500g] = useState<number | ''>(initialProduct?.original_price_500g || '')
   const [stock250g, setStock250g] = useState<number>(initialProduct?.stock_250g ?? 50)
   const [stock500g, setStock500g] = useState<number>(initialProduct?.stock_500g ?? 50)
   const [isActive, setIsActive] = useState<boolean>(initialProduct?.is_active ?? true)
-  const [imageUrl, setImageUrl] = useState<string>(initialProduct?.image_url || '')
+  const initialImages = initialProduct?.images?.length ? initialProduct.images : (initialProduct?.image_url ? [initialProduct.image_url] : [])
+  const [images, setImages] = useState<string[]>(initialImages)
   
-  // Marketing & Classification Fields
   const [tagline, setTagline] = useState((initialProduct as any)?.tagline || '')
   const [category, setCategory] = useState<'powders'|'bites'>((initialProduct as any)?.category || 'powders')
   const [badge, setBadge] = useState((initialProduct as any)?.badge || '')
   const [howToUse, setHowToUse] = useState((initialProduct as any)?.how_to_use || '')
-  const [benefits, setBenefits] = useState<string[]>((initialProduct as any)?.benefits || [])
+
+  // Parse benefits if it comes as a JSON string from the db
+  const parsedBenefits = (() => {
+    const b = (initialProduct as any)?.benefits
+    if (Array.isArray(b)) return b
+    if (typeof b === 'string' && b.trim().length > 0) {
+      try {
+        const parsed = JSON.parse(b)
+        if (Array.isArray(parsed)) return parsed
+      } catch (e) {
+        return [b]
+      }
+    }
+    return ['']
+  })()
+  const [benefits, setBenefits] = useState<string[]>(parsedBenefits)
+
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [validationError, setValidationError] = useState<string | null>(null)
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    setName(val)
+    if (!isEdit) {
+      setSlug(generateSlug(val))
+    }
+  }
+
+  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files && files.length > 0) {
+      setUploadingImage(true)
+      setValidationError(null)
+      try {
+        const uploadPromises = Array.from(files).map(file => uploadProductImage(file))
+        const urls = await Promise.all(uploadPromises)
+        setImages(prev => [...prev, ...urls])
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Image upload failed'
+        setValidationError(msg)
+      } finally {
+        setUploadingImage(false)
+        // Reset the input value so the same files can be selected again if needed
+        e.target.value = ''
+      }
+    }
+  }
+
+  const handleRemoveImage = (indexToRemove: number) => {
+    setImages(prev => prev.filter((_, i) => i !== indexToRemove))
+  }
+
+  const handleMoveImage = (index: number, direction: 'left' | 'right') => {
+    if (direction === 'left' && index > 0) {
+      setImages(prev => {
+        const newImages = [...prev]
+        const temp = newImages[index - 1]
+        newImages[index - 1] = newImages[index]
+        newImages[index] = temp
+        return newImages
+      })
+    } else if (direction === 'right' && index < images.length - 1) {
+      setImages(prev => {
+        const newImages = [...prev]
+        const temp = newImages[index + 1]
+        newImages[index + 1] = newImages[index]
+        newImages[index] = temp
+        return newImages
+      })
+    }
+  }
 
   const handleAddBenefit = () => {
     setBenefits([...benefits, ''])
@@ -56,42 +160,6 @@ export default function ProductForm({ initialProduct, isEdit = false }: ProductF
     setBenefits(benefits.filter((_, i) => i !== index))
   }
 
-  const [uploadingImage, setUploadingImage] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [validationError, setValidationError] = useState<string | null>(null)
-
-  // Auto-generate slug when name changes on creation
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value
-    setName(val)
-    if (!isEdit) {
-      setSlug(generateSlug(val))
-    }
-  }
-
-  // Handle Drag/Drop File Upload to Supabase Storage
-  const handleImageFile = async (file: File) => {
-    setUploadingImage(true)
-    setValidationError(null)
-    try {
-      const publicUrl = await uploadProductImage(file)
-      setImageUrl(publicUrl)
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Image upload failed'
-      setValidationError(msg)
-    } finally {
-      setUploadingImage(false)
-    }
-  }
-
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (files && files[0]) {
-      handleImageFile(files[0])
-    }
-  }
-
-  // Handle Form Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setValidationError(null)
@@ -102,11 +170,14 @@ export default function ProductForm({ initialProduct, isEdit = false }: ProductF
       slug,
       description,
       price_250g: Number(price250g),
+      original_price_250g: originalPrice250g === '' ? null : Number(originalPrice250g),
       price_500g: Number(price500g),
+      original_price_500g: originalPrice500g === '' ? null : Number(originalPrice500g),
       stock_250g: Number(stock250g),
       stock_500g: Number(stock500g),
       is_active: isActive,
-      image_url: imageUrl,
+      image_url: images[0] || '',
+      images,
       tagline,
       how_to_use: howToUse,
       category,
@@ -114,7 +185,6 @@ export default function ProductForm({ initialProduct, isEdit = false }: ProductF
       benefits: benefits.filter(b => b.trim() !== '')
     }
 
-    // Zod Validation
     const validation = productSchema.safeParse(payload)
     if (!validation.success) {
       const firstErr = validation.error.issues[0]?.message || 'Form validation failed'
@@ -125,9 +195,7 @@ export default function ProductForm({ initialProduct, isEdit = false }: ProductF
 
     try {
       const dbPayload = { ...payload }
-
       if (isEdit && initialProduct?.id) {
-        // Update existing row
         const response = await fetch('/api/admin/products', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -136,7 +204,6 @@ export default function ProductForm({ initialProduct, isEdit = false }: ProductF
         const result = await response.json()
         if (!response.ok) throw new Error(result.error)
       } else {
-        // Insert new row
         const response = await fetch('/api/admin/products', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -145,307 +212,251 @@ export default function ProductForm({ initialProduct, isEdit = false }: ProductF
         const result = await response.json()
         if (!response.ok) throw new Error(result.error)
       }
-
+      
+      alert(isEdit ? 'Product updated successfully!' : 'Product created successfully!')
       router.push('/admin/products')
       router.refresh()
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to save product'
       setValidationError(msg)
+      alert(`Error: ${msg}`) // Show alert so they don't miss the error at the top
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8 w-full">
-      {/* Top Action Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-        <Link
-          href="/admin/products"
-          className="text-xs font-sans text-molasses/70 hover:text-gold font-bold uppercase tracking-wider"
-        >
-          ← Back to Catalog
-        </Link>
-        <button
-          type="submit"
-          disabled={isSubmitting || uploadingImage}
-          className="inline-flex items-center justify-center bg-[#1C1C1A] hover:bg-gold text-white text-xs font-sans font-bold uppercase tracking-wider px-6 py-3 rounded-none transition-all disabled:opacity-50 cursor-pointer w-full sm:w-auto"
-        >
-          {isSubmitting ? 'Saving Product...' : isEdit ? 'Update Product' : 'Create Product'}
-        </button>
-      </div>
-
-      {validationError && (
-        <div className="p-4 bg-terracotta/10 border border-terracotta/40 text-terracotta text-xs font-sans rounded-none">
-          ⚠️ {validationError}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
-        {/* Left Column (8 cols): Main Form Fields */}
-        <div className="lg:col-span-8 space-y-6 bg-white border border-[#1C1C1A]/15 p-4 sm:p-6 rounded-none shadow-sm">
-          <h2 className="font-heading text-xl font-bold text-[#1C1C1A] border-b border-[#1C1C1A]/10 pb-3">
-            Product General Details
-          </h2>
-
-          {/* Name */}
-          <div>
-            <label className="block text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] mb-2">
-              Product Name *
-            </label>
-            <input
-              type="text"
-              required
-              value={name}
-              onChange={handleNameChange}
-              placeholder="e.g. Ginger Jaggery Powder"
-              className="w-full h-11 bg-[#F9F6F0] border border-[#1C1C1A]/20 px-3 text-sm font-sans text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none"
-            />
-          </div>
-
-          {/* Slug */}
-          <div>
-            <label className="block text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] mb-2">
-              URL Slug *
-            </label>
-            <input
-              type="text"
-              required
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              placeholder="ginger-jaggery-powder"
-              className="w-full h-11 bg-[#F9F6F0] border border-[#1C1C1A]/20 px-3 text-sm font-mono text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none"
-            />
-          </div>
-
-          {/* Tagline */}
-          <div>
-            <label className="block text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] mb-2">
-              Tagline (Optional)
-            </label>
-            <input
-              type="text"
-              value={tagline}
-              onChange={(e) => setTagline(e.target.value)}
-              placeholder="e.g. Sweet Cravings, The Gud Way"
-              className="w-full h-11 bg-[#F9F6F0] border border-[#1C1C1A]/20 px-3 text-sm font-sans text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none"
-            />
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] mb-2">
-              Product Description *
-            </label>
-            <textarea
-              rows={4}
-              required
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe origin, flavor profile, and health benefits..."
-              className="w-full bg-[#F9F6F0] border border-[#1C1C1A]/20 p-3 text-sm font-sans text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none"
-            />
-          </div>
-
-          {/* How To Use */}
-          <div>
-            <label className="block text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] mb-2">
-              How To Use (Optional)
-            </label>
-            <textarea
-              rows={2}
-              value={howToUse}
-              onChange={(e) => setHowToUse(e.target.value)}
-              placeholder="e.g. Add 1-2 TSP daily or as required to hot tea..."
-              className="w-full bg-[#F9F6F0] border border-[#1C1C1A]/20 p-3 text-sm font-sans text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none"
-            />
-          </div>
-
-          {/* Category & Badge */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] mb-2">
-                Category *
-              </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value as 'powders'|'bites')}
-                className="w-full h-11 bg-[#F9F6F0] border border-[#1C1C1A]/20 px-3 text-sm font-sans text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none"
-              >
-                <option value="powders">Powders</option>
-                <option value="bites">Bites</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] mb-2">
-                Badge (Optional)
-              </label>
-              <input
-                type="text"
-                value={badge}
-                onChange={(e) => setBadge(e.target.value)}
-                placeholder="e.g. Popular, New"
-                className="w-full h-11 bg-[#F9F6F0] border border-[#1C1C1A]/20 px-3 text-sm font-sans text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none"
-              />
-            </div>
-          </div>
-
-          {/* Benefits Array */}
-          <div className="border-t border-[#1C1C1A]/10 pt-4">
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B]">
-                Health Benefits
-              </label>
-              <button type="button" onClick={handleAddBenefit} className="text-[10px] font-bold text-gold uppercase tracking-wider">
-                + Add Benefit
-              </button>
-            </div>
-            <div className="space-y-2">
-              {benefits.map((benefit, index) => (
-                <div key={index} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={benefit}
-                    onChange={(e) => handleBenefitChange(index, e.target.value)}
-                    placeholder={`Benefit ${index + 1}`}
-                    className="flex-grow h-11 bg-[#F9F6F0] border border-[#1C1C1A]/20 px-3 text-sm font-sans text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveBenefit(index)}
-                    className="h-11 px-3 border border-[#1C1C1A]/20 bg-[#F9F6F0] hover:bg-terracotta hover:text-white transition-colors"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
-              {benefits.length === 0 && (
-                <p className="text-xs text-molasses/50 italic py-2">No benefits added yet.</p>
-              )}
-            </div>
-          </div>
-
-          {/* Prices Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-[#1C1C1A]/10 pt-4">
-            <div>
-              <label className="block text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] mb-2">
-                Price 250g (₹) *
-              </label>
-              <input
-                type="number"
-                step="1"
-                required
-                value={price250g}
-                onChange={(e) => setPrice250g(parseFloat(e.target.value) || 0)}
-                className="w-full h-11 bg-[#F9F6F0] border border-[#1C1C1A]/20 px-3 text-sm font-mono text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none"
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] mb-2">
-                Price 500g (₹) *
-              </label>
-              <input
-                type="number"
-                step="1"
-                required
-                value={price500g}
-                onChange={(e) => setPrice500g(parseFloat(e.target.value) || 0)}
-                className="w-full h-11 bg-[#F9F6F0] border border-[#1C1C1A]/20 px-3 text-sm font-mono text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none"
-              />
-            </div>
-          </div>
-
-          {/* Stock Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-[#1C1C1A]/10 pt-4">
-            <div>
-              <label className="block text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] mb-2">
-                Stock Quantity (250g) *
-              </label>
-              <input
-                type="number"
-                required
-                value={stock250g}
-                onChange={(e) => setStock250g(parseInt(e.target.value) || 0)}
-                className="w-full h-11 bg-[#F9F6F0] border border-[#1C1C1A]/20 px-3 text-sm font-mono text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none"
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C7A6B] mb-2">
-                Stock Quantity (500g) *
-              </label>
-              <input
-                type="number"
-                required
-                value={stock500g}
-                onChange={(e) => setStock500g(parseInt(e.target.value) || 0)}
-                className="w-full h-11 bg-[#F9F6F0] border border-[#1C1C1A]/20 px-3 text-sm font-mono text-[#1C1C1A] focus:outline-none focus:border-gold rounded-none"
-              />
-            </div>
-          </div>
+    <form onSubmit={handleSubmit} className="w-full" style={{ fontFamily: 'Outfit, sans-serif' }}>
+      <div className="w-full">
+        
+        {/* Top Header */}
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '40px', paddingBottom: '24px', borderBottom: '1px solid rgba(200,193,182,0.45)' }}>
+          <Link href="/admin/products" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#474741', textDecoration: 'none' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
+            {isEdit ? 'Edit Product' : 'Create Product'}
+          </Link>
         </div>
 
-        {/* Right Column (4 cols): Media Upload & Visibility */}
-        <div className="lg:col-span-4 space-y-6">
-          {/* Image Upload Area */}
-          <div className="bg-white border border-[#1C1C1A]/15 p-4 sm:p-6 rounded-none space-y-4 shadow-sm">
-            <h3 className="font-heading text-lg font-bold text-[#1C1C1A] border-b border-[#1C1C1A]/10 pb-2">
-              Product Image Media
-            </h3>
+        {validationError && (
+          <div style={{ padding: '16px', background: 'rgba(186,26,26,0.08)', border: '1px solid rgba(186,26,26,0.3)', color: '#ba1a1a', fontSize: '13px', marginBottom: '32px' }}>
+            ⚠️ {validationError}
+          </div>
+        )}
 
-            {/* Live Preview Box */}
-            <div className="relative w-full h-56 bg-[#F9F6F0] border border-[#1C1C1A]/20 flex flex-col items-center justify-center rounded-none overflow-hidden group">
-              {imageUrl ? (
-                <>
-                  <Image src={imageUrl} alt="Product Preview" fill sizes="(max-width: 768px) 100vw, 300px" className="object-contain p-4" />
-                  <button
-                    type="button"
-                    onClick={() => setImageUrl('')}
-                    className="absolute top-2 right-2 bg-terracotta text-white text-[9px] font-bold uppercase px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity rounded-none"
-                  >
-                    Remove Image
-                  </button>
-                </>
-              ) : (
-                <div className="text-center p-4 space-y-2">
-                  <span className="text-3xl">📷</span>
-                  <p className="text-xs font-sans text-molasses/60">No image uploaded yet</p>
+        <div className="grid grid-cols-1 lg:grid-[minmax(0,2fr)_minmax(320px,1fr)] gap-8 lg:gap-12 items-start">
+          
+          {/* Left Column: General Details */}
+          <div className="flex flex-col gap-9">
+            <div>
+              <h2 style={S.sectionTitle}>General Details</h2>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+                <div>
+                  <label style={S.label}>Product Name *</label>
+                  <input type="text" required value={name} onChange={handleNameChange} placeholder="Artisan Palm Jaggery Block" style={S.input} />
                 </div>
-              )}
+
+                <div>
+                  <label style={S.label}>URL Slug *</label>
+                  <input type="text" required value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="artisan-palm-jaggery-block" style={S.input} />
+                </div>
+
+                <div>
+                  <label style={S.label}>Full Description *</label>
+                  <textarea rows={4} required value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe origin, flavor profile, and health benefits..." style={{ ...S.input, resize: 'vertical' }} />
+                </div>
+
+                <div>
+                  <label style={S.label}>Tagline (Optional)</label>
+                  <input type="text" value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="Sweet Cravings, The Gud Way" style={S.input} />
+                </div>
+
+                <div>
+                  <label style={S.label}>How To Use (Optional)</label>
+                  <textarea rows={2} value={howToUse} onChange={(e) => setHowToUse(e.target.value)} placeholder="e.g. Add 1-2 TSP daily or as required to hot tea..." style={{ ...S.input, resize: 'vertical' }} />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                  <div>
+                    <label style={S.label}>Category *</label>
+                    <select value={category} onChange={(e) => setCategory(e.target.value as 'powders'|'bites')} style={S.input}>
+                      <option value="powders">Powders</option>
+                      <option value="bites">Bites</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={S.label}>Badge (Optional)</label>
+                    <input type="text" value={badge} onChange={(e) => setBadge(e.target.value)} placeholder="Popular, New" style={S.input} />
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Drag & Drop Upload Input */}
-            <div className="border-2 border-dashed border-[#1C1C1A]/30 p-4 text-center hover:border-gold transition-colors bg-[#F9F6F0] rounded-none relative">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileInputChange}
-                disabled={uploadingImage}
-                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-              />
-              <p className="text-xs font-sans font-bold text-[#1C1C1A]">
-                {uploadingImage ? 'Compressing & Uploading...' : 'Click or Drag Image to Upload'}
-              </p>
-              <p className="text-[10px] font-sans text-molasses/50 mt-1">PNG, JPG, WEBP (Auto compressed)</p>
+            {/* Prices & Stock Section */}
+            <div>
+              <h2 style={S.sectionTitle}>Pricing &amp; Inventory</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+                {/* 250g Variant */}
+                <div style={{ padding: '20px', border: '1px solid rgba(200,193,182,0.3)', background: '#fff' }}>
+                  <h3 style={{ fontSize: '13px', fontWeight: 600, color: '#010100', marginBottom: '16px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>250g Variant</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div>
+                      <label style={S.label}>Actual Price (₹) *</label>
+                      <input type="number" required value={price250g} onChange={(e) => setPrice250g(Number(e.target.value))} style={S.input} />
+                    </div>
+                    <div>
+                      <label style={S.label}>Original Price (MRP)</label>
+                      <input type="number" value={originalPrice250g} onChange={(e) => setOriginalPrice250g(e.target.value ? Number(e.target.value) : '')} placeholder="Optional" style={S.input} />
+                    </div>
+                    <div>
+                      <label style={S.label}>Stock Quantity *</label>
+                      <input type="number" required value={stock250g} onChange={(e) => setStock250g(Number(e.target.value))} style={S.input} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 500g Variant */}
+                <div style={{ padding: '20px', border: '1px solid rgba(200,193,182,0.3)', background: '#fff' }}>
+                  <h3 style={{ fontSize: '13px', fontWeight: 600, color: '#010100', marginBottom: '16px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>500g Variant</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div>
+                      <label style={S.label}>Actual Price (₹) *</label>
+                      <input type="number" required value={price500g} onChange={(e) => setPrice500g(Number(e.target.value))} style={S.input} />
+                    </div>
+                    <div>
+                      <label style={S.label}>Original Price (MRP)</label>
+                      <input type="number" value={originalPrice500g} onChange={(e) => setOriginalPrice500g(e.target.value ? Number(e.target.value) : '')} placeholder="Optional" style={S.input} />
+                    </div>
+                    <div>
+                      <label style={S.label}>Stock Quantity *</label>
+                      <input type="number" required value={stock500g} onChange={(e) => setStock500g(Number(e.target.value))} style={S.input} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              </div>
+            </div>
+
+            {/* Benefits */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <h2 style={{ ...S.sectionTitle, marginBottom: 0 }}>Health Benefits</h2>
+                <button type="button" onClick={handleAddBenefit} style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#c9a96e', background: 'none', border: 'none', cursor: 'pointer' }}>
+                  + Add Benefit
+                </button>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {benefits.map((benefit, index) => (
+                  <div key={index} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <input type="text" value={benefit} onChange={(e) => handleBenefitChange(index, e.target.value)} placeholder={`Benefit ${index + 1}`} style={S.input} />
+                    <button type="button" onClick={() => handleRemoveBenefit(index)} style={{ background: 'none', border: 'none', color: '#ba1a1a', cursor: 'pointer', fontSize: '16px', padding: '0 8px' }}>✕</button>
+                  </div>
+                ))}
+                {benefits.length === 0 && (
+                  <p style={{ fontSize: '13px', color: '#8a8880', fontStyle: 'italic' }}>No benefits added yet.</p>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Visibility Controls */}
-          <div className="bg-white border border-[#1C1C1A]/15 p-4 sm:p-6 rounded-none space-y-4 shadow-sm">
-            <h3 className="font-heading text-lg font-bold text-[#1C1C1A] border-b border-[#1C1C1A]/10 pb-2">
-              Visibility Status
-            </h3>
-            <label className="flex items-center space-x-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isActive}
-                onChange={(e) => setIsActive(e.target.checked)}
-                className="w-4 h-4 text-gold border-[#1C1C1A]/40 focus:ring-0 rounded-none cursor-pointer"
-              />
-              <span className="text-xs font-sans font-bold text-[#1C1C1A] uppercase tracking-wider">
-                Active in Storefront Catalog
-              </span>
-            </label>
+          {/* Right Column: Imagery & Controls */}
+          <div className="flex flex-col gap-9 lg:sticky lg:top-28">
+            <div>
+              <h2 style={S.sectionTitle}>Imagery</h2>
+              
+              <div style={{ border: '1px solid rgba(200,193,182,0.5)', background: '#fff', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {/* Image Gallery Grid */}
+                {images.length > 0 ? (
+                  <div className="grid grid-cols-3 gap-3">
+                    {images.map((imgUrl, idx) => (
+                      <div key={imgUrl} className="relative aspect-square border border-[#c8c7bf]/50 bg-[#fcfaf9] group">
+                        <Image src={imgUrl} alt={`Product Image ${idx + 1}`} fill className="object-contain p-2" />
+                        
+                        {/* Primary Badge */}
+                        {idx === 0 && (
+                          <div className="absolute top-2 left-2 bg-[#1c1b1a] text-white text-[9px] font-bold tracking-wider uppercase px-2 py-1 z-10">
+                            Primary
+                          </div>
+                        )}
+
+                        {/* Controls Overlay */}
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
+                          <div className="flex justify-between w-full">
+                            <div className="flex gap-1">
+                              {idx > 0 && (
+                                <button type="button" onClick={() => handleMoveImage(idx, 'left')} className="w-7 h-7 bg-white text-black flex items-center justify-center text-xs hover:bg-[#c9a96e] transition-colors">
+                                  ←
+                                </button>
+                              )}
+                              {idx < images.length - 1 && (
+                                <button type="button" onClick={() => handleMoveImage(idx, 'right')} className="w-7 h-7 bg-white text-black flex items-center justify-center text-xs hover:bg-[#c9a96e] transition-colors">
+                                  →
+                                </button>
+                              )}
+                            </div>
+                            <button type="button" onClick={() => handleRemoveImage(idx)} className="w-7 h-7 bg-[#ba1a1a] text-white flex items-center justify-center text-xs hover:bg-red-700 transition-colors">
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ width: '100%', height: '200px', background: '#fcfaf9', border: '1.5px dashed rgba(200,193,182,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ textAlign: 'center', color: '#8a8880' }}>
+                      <p style={{ fontSize: '28px', margin: 0 }}>📷</p>
+                      <p style={{ fontSize: '12px', marginTop: '8px' }}>No images uploaded yet</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Upload Trigger Button */}
+                <div style={{ position: 'relative', border: '1.5px solid #1c1b1a', textAlign: 'center', padding: '12px', cursor: 'pointer', background: '#fdf8f7' }}>
+                  <input type="file" multiple accept="image/*" onChange={handleFileInputChange} disabled={uploadingImage} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }} />
+                  <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1c1b1a' }}>
+                    {uploadingImage ? 'Uploading...' : '+ Add Images'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Visibility Controls */}
+            <div style={{ border: '1px solid rgba(200,193,182,0.5)', background: '#fff', padding: '24px' }}>
+              <h3 style={{ ...S.sectionTitle, fontSize: '16px', marginBottom: '20px' }}>Visibility Status</h3>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} style={{ width: '16px', height: '16px', border: '1.5px solid #1c1b1a', borderRadius: 0, outline: 'none', cursor: 'pointer' }} />
+                <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#1c1b1a' }}>
+                  Active in storefront catalog
+                </span>
+              </label>
+            </div>
+
+            {/* Main Submit Action Button */}
+            <button
+              type="submit"
+              disabled={isSubmitting || uploadingImage}
+              style={{
+                width: '100%',
+                background: '#1c1b1a',
+                color: '#fff',
+                border: 'none',
+                padding: '16px',
+                fontSize: '12px',
+                fontWeight: 700,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                opacity: isSubmitting || uploadingImage ? 0.6 : 1,
+                transition: 'opacity 0.15s',
+                marginBottom: '56px',
+              }}
+            >
+              {isSubmitting ? 'Saving Changes...' : isEdit ? 'Update Product' : 'Create Product'}
+            </button>
           </div>
+
         </div>
       </div>
     </form>

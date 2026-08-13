@@ -10,61 +10,64 @@ import AnimatedSection from '@/components/ui/AnimatedSection'
 import { getProductsByCategory, Product } from '@/data/products'
 
 export default function ShopPage() {
- const [activeCategory, setActiveCategory] = useState('all')
- const [products, setProducts] = useState<Product[]>([])
- const [isLoading, setIsLoading] = useState(true)
+  const [activeCategory, setActiveCategory] = useState('all')
+  const [products, setProducts] = useState<Product[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
- useEffect(() => {
-   async function loadProducts() {
-     setIsLoading(true)
-     const fetchedProducts = await getProductsByCategory(activeCategory)
-     setProducts(fetchedProducts)
-     setIsLoading(false)
-   }
-   loadProducts()
- }, [activeCategory])
+  useEffect(() => {
+    async function loadProducts() {
+      setIsLoading(true)
+      const fetchedProducts = await getProductsByCategory(activeCategory)
+      setProducts(fetchedProducts)
+      setIsLoading(false)
+    }
+    loadProducts()
+  }, [activeCategory])
 
- return (
- <>
- <Header />
- <CartDrawer />
- <main className="main-page-padding pb-32 min-h-screen bg-cream">
- <div className="container-main">
- <AnimatedSection>
- <div className="flex flex-col items-center text-center mb-14">
- <span className="overline text-center block">Shop</span>
- <h1 className="font-heading text-4xl md:text-[3.25rem] font-light text-molasses mt-4 mb-5 leading-tight lowercase">
- our <span className="italic font-normal">collection.</span>
- </h1>
- <p className="text-molasses-lighter text-[15px] max-w-xl mx-auto leading-relaxed text-center">
- Handcrafted in small batches on our family farms in Kolhapur. Pick your favourites.
- </p>
- </div>
- </AnimatedSection>
+  return (
+    <>
+      <Header />
+      <CartDrawer />
+      <main style={{ background: '#f9f4f1', minHeight: '100vh', fontFamily: 'Outfit, sans-serif', overflowX: 'hidden', paddingTop: '100px' }}>
+        <div style={{ width: '100%', maxWidth: '1135px', marginLeft: 'auto', marginRight: 'auto', paddingLeft: '32px', paddingRight: '32px', paddingBottom: '48px' }}>
+          
+          {/* Header */}
+          <AnimatedSection>
+            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+              <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#8a8880', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '16px' }}>
+                <span style={{ width: '40px', height: '1px', backgroundColor: '#e5e5e5' }}></span>
+                SHOP
+                <span style={{ width: '40px', height: '1px', backgroundColor: '#e5e5e5' }}></span>
+              </span>
+              <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '48px', fontWeight: 500, color: '#010100', margin: 0, letterSpacing: '-0.02em' }}>
+                our <span style={{ fontStyle: 'italic', fontWeight: 400 }}>collection.</span>
+              </h1>
+              <p style={{ fontSize: '14px', color: '#474741', marginTop: '16px', maxWidth: '480px', margin: '16px auto 0', lineHeight: 1.6 }}>
+                Handcrafted in small batches on our family farms in Kolhapur. Pick your favourites.
+              </p>
+            </div>
+          </AnimatedSection>
 
- <FilterBar
- activeCategory={activeCategory}
- onCategoryChange={setActiveCategory}
- />
+          {/* Filters */}
+          <FilterBar activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
 
- <ProductGrid products={products} />
+          {/* Grid */}
+          {isLoading ? (
+            <div style={{ textAlign: 'center', padding: '80px 0' }}>
+              <p style={{ fontSize: '14px', color: '#8a8880' }}>Loading products...</p>
+            </div>
+          ) : products.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '80px 0' }}>
+              <span style={{ fontSize: '32px', display: 'block', marginBottom: '12px' }}>🫙</span>
+              <p style={{ fontSize: '14px', color: '#8a8880' }}>No products in this category yet.</p>
+            </div>
+          ) : (
+            <ProductGrid products={products} />
+          )}
 
- {isLoading ? (
- <div className="text-center py-20">
- <div className="animate-pulse w-8 h-8 rounded-full border-2 border-molasses border-t-transparent animate-spin mx-auto mb-4"></div>
- <p className="text-molasses-lighter text-sm">Loading products...</p>
- </div>
- ) : products.length === 0 ? (
- <div className="text-center py-20">
- <span className="text-4xl mb-4 block">🫙</span>
- <p className="text-molasses-lighter text-sm">
- No products in this category yet.
- </p>
- </div>
- ) : null}
- </div>
- </main>
- <Footer />
- </>
- )
+        </div>
+      </main>
+      <Footer />
+    </>
+  )
 }

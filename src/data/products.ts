@@ -19,6 +19,7 @@ export interface Product {
  category: 'powders' | 'bites'
  badge?: string
  image: string
+ images: string[]
  variants: ProductVariant[]
  featured: boolean
 }
@@ -38,7 +39,7 @@ function mapDBProductToFrontend(dbProduct: any): Product {
       weight: '250g',
       weightGrams: 250,
       price: dbProduct.price_250g,
-      originalPrice: Math.round(dbProduct.price_250g * 1.35)
+      originalPrice: dbProduct.original_price_250g || Math.round(dbProduct.price_250g * 1.35)
     })
   }
   if (dbProduct.price_500g) {
@@ -47,7 +48,7 @@ function mapDBProductToFrontend(dbProduct: any): Product {
       weight: '500g',
       weightGrams: 500,
       price: dbProduct.price_500g,
-      originalPrice: Math.round(dbProduct.price_500g * 1.35)
+      originalPrice: dbProduct.original_price_500g || Math.round(dbProduct.price_500g * 1.35)
     })
   }
 
@@ -57,17 +58,28 @@ function mapDBProductToFrontend(dbProduct: any): Product {
     name: dbProduct.name,
     tagline: dbProduct.tagline || 'Sweet Cravings, The Gud Way',
     description: dbProduct.description || '',
-    benefits: dbProduct.benefits && dbProduct.benefits.length > 0
-      ? dbProduct.benefits
-      : [
-          'Provides a sustained release of energy throughout the day.',
-          'Naturally stimulates digestive enzymes.',
-          'Rich in vital minerals like potassium and magnesium.'
-        ],
+    benefits: (function() {
+      const b = dbProduct.benefits;
+      if (Array.isArray(b) && b.length > 0) return b;
+      if (typeof b === 'string' && b.trim().length > 0) {
+        try {
+          const parsed = JSON.parse(b);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch (e) {
+          return [b];
+        }
+      }
+      return [
+        'Provides a sustained release of energy throughout the day.',
+        'Naturally stimulates digestive enzymes.',
+        'Rich in vital minerals like potassium and magnesium.'
+      ];
+    })(),
     howToUse: dbProduct.how_to_use || 'Add 1-2 TSP daily or as required to hot tea, warm milk, or beverages.',
     category: dbProduct.category || (dbProduct.slug.includes('bite') ? 'bites' : 'powders'),
     badge: dbProduct.badge || undefined,
     image: dbProduct.image_url || '/images/aaa-removebg-preview.png',
+    images: dbProduct.images?.length ? dbProduct.images : (dbProduct.image_url ? [dbProduct.image_url] : ['/images/aaa-removebg-preview.png']),
     variants,
     featured: dbProduct.is_active !== false, // Hide if not active
   }

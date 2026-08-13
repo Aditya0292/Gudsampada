@@ -50,7 +50,7 @@ export default function HeroSection(): React.JSX.Element {
         fill
         priority
         loading="eager"
-        sizes="100vw"
+        sizes="(max-width: 768px) 100vw, 0px"
         className="object-cover object-center"
       />
     </div>
@@ -97,21 +97,33 @@ export default function HeroSection(): React.JSX.Element {
  Traditionally crafted unrefined jaggery, made using heirloom techniques. No chemical additives. Just pure, organic sugarcane nectar.
  </motion.p>
 
- <motion.div
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- transition={{ duration: 1, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
- >
- <Link
- href="/shop"
- className="inline-flex items-center gap-2.5 text-white font-bold text-xs uppercase tracking-[0.25em] transition-colors duration-300 group"
- >
- Explore Shop
- <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="transition-transform ">
- <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
- </svg>
- </Link>
- </motion.div>
+  <motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 1, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
+  style={{ marginTop: '32px' }}
+  >
+  <Link
+  href="/shop"
+  style={{
+    display: 'inline-block',
+    background: 'transparent',
+    border: '1.5px solid #fff',
+    color: '#fff',
+    padding: '16px 32px',
+    fontSize: '13px',
+    fontWeight: 700,
+    letterSpacing: '0.12em',
+    textTransform: 'uppercase',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    fontFamily: 'Outfit, sans-serif'
+  }}
+  className="hover:bg-white hover:text-black"
+  >
+  Explore Shop →
+  </Link>
+  </motion.div>
  </motion.div>
 
  {/* Right side product showcase */}

@@ -12,7 +12,7 @@ export default function Header(): React.JSX.Element {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const totalItems = useCartStore((s) => s.totalItems)
+  const items = useCartStore((s) => s.items)
   const openCart = useCartStore((s) => s.openCart)
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export default function Header(): React.JSX.Element {
     setMobileMenuOpen(false)
   }, [pathname])
 
-  const itemCount = mounted ? totalItems() : 0
+  const itemCount = mounted ? items.reduce((sum, i) => sum + i.quantity, 0) : 0
   const isHeaderActive = scrolled || !isHomepage
 
   const navLinks = [

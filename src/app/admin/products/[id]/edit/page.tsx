@@ -37,7 +37,7 @@ export default async function AdminEditProductPage({
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+    <div className="w-full py-16 space-y-8">
       {/* Header */}
       <div className="border-b border-[#2D241E]/15 pb-5">
         <span className="text-[10px] font-sans font-bold uppercase tracking-[0.25em] text-gold block mb-1">

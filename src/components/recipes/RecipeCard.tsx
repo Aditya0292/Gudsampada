@@ -11,47 +11,51 @@ interface RecipeCardProps {
 
 export default function RecipeCard({ recipe }: RecipeCardProps) {
   return (
-    <div className="bg-[#F7F4EE] hover:bg-[#F3EFE7] border border-molasses/10 rounded-none p-4 sm:p-5 h-full flex flex-col justify-between transition-all duration-500 shadow-xs hover:shadow-card group">
-      <div>
-        {/* Image Container (Sharp 90-degree Corners) */}
-        <div className="relative w-full aspect-[16/10] bg-[#EBE7DF] rounded-none overflow-hidden mb-4">
-          <Image
-            src={recipe.image}
-            alt={recipe.title}
-            fill
-            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, 50vw"
-          />
-        </div>
-
-        {/* Made with PDP Micro-Badge */}
-        <div className="mb-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none bg-gold/10 border border-gold/20 text-gold text-[10px] font-sans font-semibold tracking-[0.18em] uppercase">
-          <span>🫙</span>
-          <span>Made with:</span>
-          <Link
-            href={`/products/${recipe.relatedProductSlug}`}
-            className="font-bold underline hover:text-molasses transition-colors"
-          >
-            {recipe.relatedProductName}
-          </Link>
-        </div>
-
-        {/* Title in Restrained Title Casing & Serif Font */}
-        <h3 className="font-serif text-base md:text-lg font-normal text-molasses leading-snug tracking-tight mb-2">
-          {recipe.title}
-        </h3>
-
-        {/* Description */}
-        <p className="text-molasses/70 text-xs font-sans leading-relaxed mb-4">
-          {recipe.description}
-        </p>
+    <div className="p-4 sm:p-5" style={{ height: '100%', border: '1px solid rgba(200,193,182,0.5)', background: '#fff', display: 'flex', flexDirection: 'column', gap: '16px', fontFamily: 'Outfit, sans-serif' }}>
+      
+      {/* Image Container */}
+      <div style={{ position: 'relative', width: '100%', aspectRatio: '16/10', background: '#f5f0ef', border: '1px solid rgba(200,193,182,0.3)', overflow: 'hidden' }}>
+        <Image
+          src={recipe.image}
+          alt={recipe.title}
+          fill
+          className="object-cover"
+          sizes="(max-width: 640px) 100vw, 50vw"
+        />
       </div>
 
-      {/* Baseline Metadata Row */}
-      <div className="pt-3 border-t border-molasses/10 flex items-center justify-between text-[10px] font-sans font-medium uppercase tracking-wider text-molasses/60 mt-auto">
-        <span>⏱️ {recipe.prepTime}</span>
-        <span>🍽️ {recipe.servings}</span>
+      {/* Made with Badge */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#8a8880' }}>
+        <span>🫙</span>
+        <span>Made with:</span>
+        <Link
+          href={`/products/${recipe.relatedProductSlug}`}
+          style={{ color: '#c9a96e', textDecoration: 'underline', textUnderlineOffset: '2px' }}
+        >
+          {recipe.relatedProductName}
+        </Link>
       </div>
+
+      {/* Title */}
+      <h3 className="text-lg sm:text-xl" style={{ fontFamily: 'Playfair Display, serif', fontWeight: 500, color: '#010100', margin: 0, lineHeight: 1.3 }}>
+        {recipe.title}
+      </h3>
+
+      {/* Description */}
+      <p className="text-[13px] leading-relaxed" style={{ color: '#474741', margin: 0 }}>
+        {recipe.description}
+      </p>
+
+      {/* Metadata Footer */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(200,193,182,0.3)', paddingTop: '12px', fontSize: '11px', fontWeight: 600, letterSpacing: '0.04em', color: '#8a8880', textTransform: 'uppercase', marginTop: 'auto' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          ⏱ {recipe.prepTime}
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          🍽 {recipe.servings}
+        </span>
+      </div>
+
     </div>
   )
 }

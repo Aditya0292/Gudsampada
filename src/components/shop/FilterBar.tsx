@@ -13,7 +13,7 @@ export default function FilterBar({
  onCategoryChange,
 }: FilterBarProps) {
  return (
- <div className="flex justify-center gap-8 mb-12 border-b border-border pb-4">
+ <div className="flex justify-center gap-8 mb-6 border-b border-border pb-4">
  {categories.map((cat) => (
  <button
  key={cat.id}

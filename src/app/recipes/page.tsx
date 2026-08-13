@@ -13,29 +13,33 @@ export default function RecipesPage() {
     <>
       <Header />
       <CartDrawer />
-      <main className="main-page-padding py-20 min-h-screen bg-cream">
-        <div className="container-main max-w-5xl mx-auto w-full">
+      <main style={{ background: '#f9f4f1', minHeight: '100vh', fontFamily: 'Outfit, sans-serif', paddingTop: '100px' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }} className="px-4 sm:px-8 md:px-12 pb-12">
+          
+          {/* Header */}
           <AnimatedSection className="w-full flex flex-col items-center justify-center">
-            <div className="w-full max-w-2xl text-center mb-16 flex flex-col items-center justify-center mx-auto">
-              <span className="text-[10px] font-sans font-bold uppercase tracking-[0.25em] text-gold block mb-2 text-center w-full">
+            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+              <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a96e', display: 'block', marginBottom: '8px' }}>
                 Heritage Kitchen
               </span>
-              <h1 className="font-heading text-4xl md:text-5xl font-light text-molasses leading-tight mb-4 text-center w-full">
-                artisan <span className="italic font-normal">recipes.</span>
+              <h1 className="text-3xl sm:text-[38px]" style={{ fontFamily: 'Playfair Display, serif', fontWeight: 500, color: '#010100', margin: 0 }}>
+                artisan <span style={{ fontStyle: 'italic', fontWeight: 400 }}>recipes.</span>
               </h1>
-              <p className="w-full text-center text-molasses/75 text-base md:text-lg font-serif font-light leading-relaxed max-w-xl mx-auto block">
+              <p className="text-sm max-w-[520px]" style={{ color: '#8a8880', margin: '12px auto 0', lineHeight: 1.6 }}>
                 Discover authentic Kolhapuri brews, immunity elixirs, and sweet delicacies made with GudSampada unrefined jaggery.
               </p>
             </div>
           </AnimatedSection>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 w-full">
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-8 mb-10">
             {recipes.map((recipe, index) => (
-              <AnimatedSection key={recipe.id} delay={index * 0.1} className="w-full">
+              <AnimatedSection key={recipe.id} delay={index * 0.1}>
                 <RecipeCard recipe={recipe} />
               </AnimatedSection>
             ))}
           </div>
+
         </div>
       </main>
       <Footer />
