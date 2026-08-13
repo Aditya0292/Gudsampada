@@ -216,7 +216,6 @@ img {
   background-clip: text;
 }
 
-/* ─── Container ─── */
 .container-main {
   max-width: 1200px;
   margin-left: auto;
@@ -225,10 +224,22 @@ img {
   padding-right: 2rem;
 }
 
+.container-wide {
+  max-width: 1500px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 5rem;
+  padding-right: 5rem;
+}
+
 @media (max-width: 640px) {
   .container-main {
     padding-left: 1.25rem;
     padding-right: 1.25rem;
+  }
+  .container-wide {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
 }
 

@@ -43,15 +43,15 @@ export default function Header(): React.JSX.Element {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isHeaderActive
-          ? 'bg-cream/95 backdrop-blur-md border-b border-border py-4'
-          : 'bg-transparent py-6'
+          ? 'bg-cream/95 backdrop-blur-md border-b border-border py-6'
+          : 'bg-transparent py-8'
       }`}
     >
-      <div className="container-main flex items-center justify-between">
+      <div className="container-wide flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center">
           <span
-            className={`font-heading text-2xl font-bold tracking-tight transition-colors duration-300 ${
+            className={`font-heading text-3xl font-bold tracking-tight transition-colors duration-300 ${
               isHeaderActive ? 'text-molasses' : 'text-white'
             }`}
           >
@@ -67,7 +67,7 @@ export default function Header(): React.JSX.Element {
               <Link
                 key={link.label}
                 href={link.href}
-                className={`relative group text-[10px] font-semibold uppercase tracking-[0.22em] transition-colors duration-300 py-1 ${
+                className={`relative group text-xs font-semibold uppercase tracking-[0.22em] transition-colors duration-300 py-1 ${
                   isHeaderActive
                     ? isActive ? 'text-molasses' : 'text-molasses-light hover:text-molasses'
                     : isActive ? 'text-white' : 'text-white/80 hover:text-white'
@@ -95,7 +95,7 @@ export default function Header(): React.JSX.Element {
             aria-label="Open cart"
             id="cart-button"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
               <line x1="3" y1="6" x2="21" y2="6" />
               <path d="M16 10a4 4 0 0 1-8 0" />
@@ -123,7 +123,7 @@ export default function Header(): React.JSX.Element {
             aria-label="Toggle menu"
             id="mobile-menu-toggle"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               {mobileMenuOpen ? (
                 <>
                   <line x1="18" y1="6" x2="6" y2="18" />
